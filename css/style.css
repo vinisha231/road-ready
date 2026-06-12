@@ -237,6 +237,30 @@ button.danger { background: var(--red); color: #fff; }
 .rc-tag { color: var(--amber); font-weight: 900; letter-spacing: 0.14em; font-size: 0.8rem; }
 .rc-event { margin: 8px 0 12px; font-size: 1.05rem; }
 
+/* ---- parent dashboard ---- */
+.parent-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; margin-top: 20px; }
+@media (max-width: 800px) { .parent-grid { grid-template-columns: 1fr; } }
+.ptable { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.ptable th {
+  text-align: left; color: var(--muted); font-size: 0.78rem; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 8px 10px; border-bottom: 1.5px solid #2a3343;
+}
+.ptable td { padding: 9px 10px; border-bottom: 1px solid #222a38; }
+button.mini {
+  font-size: 0.78rem; padding: 5px 12px; border-radius: 99px;
+  background: var(--panel-2); color: var(--ink); border: 1.5px solid #3a4456;
+}
+button.mini.on { background: rgba(255,210,74,0.16); border-color: var(--amber); color: var(--amber); }
+.weak { list-style: none; }
+.weak li {
+  background: var(--panel); border: 1.5px solid #2a3343; border-radius: 10px;
+  padding: 11px 14px; margin-bottom: 8px; font-size: 0.92rem;
+  display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;
+}
+.weak .count { color: var(--red); font-weight: 700; }
+.weak .sug { color: var(--muted); font-size: 0.82rem; }
+.small { font-size: 0.8rem; margin-top: 10px; }
+
 /* letterbox bars for cinema feel */
 #replayCap::before {
   content: ''; position: fixed; left: 0; right: 0; top: 0; height: 56px;
