@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadReady — Teen Driving Simulator</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <div id="hud" class="hidden">
+    <div id="objective"></div>
+    <div id="zoneBanner" class="hidden"></div>
+    <div id="speedo"><span id="speedVal">0</span><span class="unit">mph</span></div>
+    <div id="limitSign"><div class="limit-label">SPEED<br>LIMIT</div><div id="limitVal">35</div></div>
+    <div id="toasts"></div>
+    <div id="phone" class="hidden">📱<div id="phoneMsg">mom: where r u??</div></div>
+    <div id="attempts" class="hidden"></div>
+  </div>
+  <div id="peekBlur" class="hidden"></div>
+  <div id="replayCap" class="hidden"></div>
+
+  <div id="menu" class="screen"></div>
+  <div id="brief" class="screen hidden"></div>
+  <div id="results" class="screen hidden"></div>
+  <div id="parent" class="screen hidden"></div>
+  <div id="pause" class="screen hidden"></div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>
