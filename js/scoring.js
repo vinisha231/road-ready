@@ -73,6 +73,42 @@ class Session {
   }
 }
 
+/* Detailed feedback. Honest. Occasionally too honest. */
+Scoring.feedback = function (s, score) {
+  const lines = [];
+  const count = (type) => s.events.filter(e => e.type === type).length;
+
+  if (s.fatal) lines.push('You hit a pedestrian. There is no feedback that softens that one. Slow down near crosswalks.');
+  const crashes = count('collision') + count('collision-traffic') + count('lane-end-crash');
+  if (crashes >= 3) lines.push(`${crashes} collisions. Your insurance premium just became a phone number.`);
+  else if (crashes > 0) lines.push(`${crashes} collision${crashes > 1 ? 's' : ''}. Metal remembers, and so do we.`);
+  if (s.tailPct >= 15) lines.push(`You tailgated for ${s.tailPct}% of that drive. Impressive commitment to reading bumper stickers.`);
+  if (s.speedPct >= 25) lines.push(`Speeding ${s.speedPct}% of the time (topped out at ${s.maxMph} mph). The limit is not a suggestion with extra steps.`);
+  else if (s.speedPct >= 8) lines.push(`Watch the speedometer — you were over the limit ${s.speedPct}% of the drive.`);
+  if (s.schoolSpeedingT > 2) lines.push('Speeding in a school zone. Bold. Terrible, but bold.');
+  const cones = count('cone');
+  if (cones >= 4) lines.push(`Cones flattened: ${cones}. They had families.`);
+  else if (cones > 0) lines.push(`You hit ${cones} cone${cones > 1 ? 's' : ''}. The construction crew sends their regards.`);
+  const peeks = count('distracted');
+  if (peeks > 0) lines.push(`You checked your phone ${peeks} time${peeks > 1 ? 's' : ''} while driving. The group chat can wait. It really can.`);
+  if (count('resisted-phone') > 0 && peeks === 0) lines.push('Phone buzzed, you ignored it. Genuinely elite behavior.');
+  if (count('hazard-avoided') > 0) lines.push(`Stopped in time for ${count('hazard-avoided')} hazard${count('hazard-avoided') > 1 ? 's' : ''}. Your reflexes are pulling their weight.`);
+  if (count('hit-animal') > 0) lines.push('An animal was harmed in the making of this drive. Scan the roadsides, especially at night.');
+  if (count('wrong-way') > 0) lines.push('You went the wrong way around the roundabout. Everyone else was wrong, surely.');
+  if (count('failed-yield') > 0) lines.push('Yield means they go first. It is not a vibe check.');
+  if (s.offroadT > 4) lines.push(`${Math.round(s.offroadT)}s spent off the road. The grass is not a shortcut.`);
+  if (s.slowT > 5) lines.push('Driving way under highway speed is its own hazard. Confidence, but earned.');
+  if (count('harsh-brake') >= 3) lines.push('Lots of slam-braking. Smooth inputs, smooth life.');
+  if (count('great-stop') > 0) lines.push('Textbook emergency stop. Frame it.');
+
+  if (!lines.length) {
+    lines.push(score >= 95
+      ? 'Textbook drive. Your future insurance company would weep with joy.'
+      : 'Clean drive overall — keep stacking reps until it is boring.');
+  }
+  return lines;
+};
+
 Scoring.grade = function (s) {
   const bands = [[97, 'A+'], [93, 'A'], [90, 'A-'], [87, 'B+'], [83, 'B'], [80, 'B-'],
     [77, 'C+'], [73, 'C'], [70, 'C-'], [67, 'D+'], [63, 'D'], [60, 'D-']];
