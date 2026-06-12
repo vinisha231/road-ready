@@ -214,6 +214,44 @@ const Sim = {
     }
   },
 
+  finish() {
+    if (this.finished) return;
+    this.finished = true;
+    const res = this.session.finalize();
+    this.lastRes = res;
+    Store.recordRun(this.scenario.id, res, this.session);
+    Leaderboard.submit(this.scenario.id, Store.setting('name') || 'YOU', res.score);
+    this.clip = Replay.buildWorst(this.session);
+    this.state = 'results';
+    UI.buildResults(this, res);
+  },
+
+  startReplay() {
+    if (!this.clip) return;
+    Replay.start(this.clip);
+    this.car.vx = this.car.vy = 0;
+    this.state = 'replay';
+    UI.show(null);
+    UI.setObjective('');
+    UI.setZone(null);
+    UI.attempts(null);
+    UI.replayCaption(this.clip, true);
+  },
+
+  endReplay() {
+    UI.replayCaption(null, false);
+    this.state = 'results';
+    UI.buildResults(this, this.lastRes);
+  },
+
+  updateReplay(dt) {
+    Replay.step(dt);
+    const g = Replay.carState();
+    this.car.x = g.x; this.car.y = g.y; this.car.heading = g.h;
+    Camera.follow(this.car, dt);
+    if (Input.justPressed('Escape')) this.endReplay();
+  },
+
   draw() {
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
