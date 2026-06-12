@@ -11,6 +11,18 @@ class Car {
     this.flash = 0;
   }
 
+  static marks = []; // shared skid mark segments {x1,y1,x2,y2}
+
+  static drawMarks(ctx) {
+    if (!Car.marks.length) return;
+    ctx.strokeStyle = 'rgba(20,20,24,0.42)';
+    ctx.lineWidth = 0.3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (const m of Car.marks) { ctx.moveTo(m.x1, m.y1); ctx.lineTo(m.x2, m.y2); }
+    ctx.stroke();
+  }
+
   get speed() { return Math.hypot(this.vx, this.vy); }
   get forwardSpeed() { return this.vx * Math.cos(this.heading) + this.vy * Math.sin(this.heading); }
   obb() { return { x: this.x, y: this.y, l: this.len, w: this.wid, a: this.heading }; }
@@ -47,6 +59,19 @@ class Car {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     if (this.flash > 0) this.flash -= dt;
+
+    // lay rubber from the rear axle while sliding
+    const rax = this.x - fx * this.len * 0.32, ray = this.y - fy * this.len * 0.32;
+    if (this.skidding && this.speed > 2 && this._rear) {
+      for (const s of [-1, 1]) {
+        Car.marks.push({
+          x1: this._rear.x + rx * s * this.wid * 0.4, y1: this._rear.y + ry * s * this.wid * 0.4,
+          x2: rax + rx * s * this.wid * 0.4, y2: ray + ry * s * this.wid * 0.4,
+        });
+      }
+      if (Car.marks.length > 900) Car.marks.splice(0, Car.marks.length - 900);
+    }
+    this._rear = { x: rax, y: ray };
   }
 
   draw(ctx) {
