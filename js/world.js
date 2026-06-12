@@ -92,4 +92,78 @@ const World = {
     }
     ctx.restore();
   },
+
+  /* Obstacles: {kind, x, y, a, l, w, solid, color, text, flat} */
+  drawObstacles(ctx, inst) {
+    for (const o of inst.obstacles || []) {
+      ctx.save();
+      ctx.translate(o.x, o.y);
+      ctx.rotate(o.a || 0);
+      switch (o.kind) {
+        case 'car': {
+          const L = o.l || 4.4, W = o.w || 1.85;
+          ctx.fillStyle = '#101216';
+          for (const sx of [-1, 1]) for (const sy of [-1, 1]) ctx.fillRect(sx * L * 0.32 - 0.4, sy * W * 0.5 - 0.14, 0.8, 0.28);
+          ctx.fillStyle = o.color || '#7d8aa0';
+          ctx.beginPath(); ctx.roundRect(-L / 2, -W / 2, L, W, 0.5); ctx.fill();
+          ctx.fillStyle = 'rgba(18,24,36,0.8)';
+          ctx.beginPath(); ctx.roundRect(-L * 0.18, -W / 2 + 0.24, L * 0.44, W - 0.48, 0.3); ctx.fill();
+          break;
+        }
+        case 'truck': {
+          const L = o.l || 7.5, W = o.w || 2.5;
+          ctx.fillStyle = o.color || '#9aa3ad';
+          ctx.fillRect(-L / 2, -W / 2, L * 0.72, W);
+          ctx.fillStyle = '#5c87b8';
+          ctx.beginPath(); ctx.roundRect(L * 0.24, -W / 2, L * 0.26, W, 0.4); ctx.fill();
+          break;
+        }
+        case 'cone':
+          if (o.flat) {
+            ctx.fillStyle = '#a04a18';
+            ctx.beginPath(); ctx.ellipse(0, 0, 0.42, 0.24, 0.5, 0, U.TAU); ctx.fill();
+          } else {
+            ctx.fillStyle = '#e8742a';
+            ctx.beginPath(); ctx.arc(0, 0, 0.3, 0, U.TAU); ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.09;
+            ctx.beginPath(); ctx.arc(0, 0, 0.18, 0, U.TAU); ctx.stroke();
+          }
+          break;
+        case 'barrel':
+          ctx.fillStyle = '#e8742a';
+          ctx.beginPath(); ctx.arc(0, 0, 0.5, 0, U.TAU); ctx.fill();
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.14;
+          ctx.beginPath(); ctx.arc(0, 0, 0.32, 0, U.TAU); ctx.stroke();
+          break;
+        case 'barrier': {
+          const L = o.l || 3, W = o.w || 0.5;
+          ctx.fillStyle = '#e8742a';
+          ctx.fillRect(-L / 2, -W / 2, L, W);
+          ctx.fillStyle = '#fff';
+          for (let s = -L / 2 + 0.3; s < L / 2 - 0.3; s += 0.8) ctx.fillRect(s, -W / 2, 0.35, W);
+          break;
+        }
+        case 'sign': {
+          ctx.fillStyle = '#6b7280';
+          ctx.fillRect(-0.07, -0.07, 0.14, 0.14);
+          if (o.diamond) {
+            ctx.rotate(Math.PI / 4);
+            ctx.fillStyle = o.color || '#f7c948';
+            ctx.beginPath(); ctx.roundRect(-0.85, -0.85, 1.7, 1.7, 0.2); ctx.fill();
+            ctx.rotate(-Math.PI / 4);
+            World.text(ctx, o.text || '!', 0, 0, 0.62, '#1a1505');
+          } else {
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.roundRect(-0.8, -1.05, 1.6, 2.1, 0.15); ctx.fill();
+            ctx.strokeStyle = '#1a1c20'; ctx.lineWidth = 0.07;
+            ctx.beginPath(); ctx.roundRect(-0.68, -0.93, 1.36, 1.86, 0.1); ctx.stroke();
+            World.text(ctx, o.small || 'SPEED LIMIT', 0, -0.45, 0.34, '#1a1c20');
+            World.text(ctx, o.text || '35', 0, 0.28, 1.0, '#1a1c20');
+          }
+          break;
+        }
+      }
+      ctx.restore();
+    }
+  },
 };
