@@ -118,6 +118,17 @@ const World = {
           ctx.beginPath(); ctx.roundRect(L * 0.24, -W / 2, L * 0.26, W, 0.4); ctx.fill();
           break;
         }
+        case 'deerprop': {
+          ctx.fillStyle = '#a87f4f';
+          ctx.beginPath(); ctx.ellipse(0, 0, 0.85, 0.38, 0, 0, U.TAU); ctx.fill();
+          ctx.beginPath(); ctx.arc(0.85, -0.1, 0.22, 0, U.TAU); ctx.fill();
+          ctx.strokeStyle = '#6e5230'; ctx.lineWidth = 0.08;
+          ctx.beginPath();
+          ctx.moveTo(0.9, -0.25); ctx.lineTo(1.15, -0.6);
+          ctx.moveTo(1.0, -0.42); ctx.lineTo(1.25, -0.42);
+          ctx.stroke();
+          break;
+        }
         case 'cone':
           if (o.flat) {
             ctx.fillStyle = '#a04a18';
