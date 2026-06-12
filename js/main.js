@@ -20,6 +20,10 @@ const Sim = {
     };
     window.addEventListener('resize', resize);
     resize();
+    // alt-tabbing away should not end in a fence
+    window.addEventListener('blur', () => {
+      if (this.state === 'play') { this.state = 'pause'; UI.buildPause(); }
+    });
     Input.init();
     UI.buildMenu();
     this._last = performance.now();
