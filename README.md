@@ -68,6 +68,31 @@ Open http://localhost:8000.
 
 Progress, leaderboards, and assignments live in `localStorage` — clearing site data resets everything.
 
+## Project structure
+
+```
+index.html              page shell + script load order
+css/style.css           all styling (dark theme, HUD, screens)
+js/
+  util.js               math helpers + SAT collision for oriented boxes
+  car.js                arcade-but-honest car physics (lateral grip model)
+  world.js              roads, rings, props, marks, zones, surface queries
+  weather.js            rain particles, grip loss, night + headlight cone
+  scoring.js            event table, per-frame trackers, grades, feedback
+  hazards.js            proximity-triggered actors (pedestrians.js)
+  traffic.js            waypoint AI cars that brake for you
+  phone.js              the distraction engine
+  replay.js             worst-moment recorder & slow-mo playback
+  leaderboard.js        local top-10 per scenario
+  unlocks.js            70+ progression chain
+  parent.js             instructor dashboard & homework assignment
+  ui.js / main.js       DOM screens, HUD, state machine, game loop
+  audio.js              zero-asset WebAudio blips
+  scenarios/            one file per scenario, registered in base.js
+```
+
+No frameworks, no build, no dependencies. View source is the documentation.
+
 ## Disclaimer
 
 RoadReady is not a substitute for actual driver's education, supervised practice,
