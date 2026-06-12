@@ -120,6 +120,100 @@ const Sim = {
     if (inst.isComplete && inst.isComplete(this)) this.finish();
   },
 
+  updateCollisions(dt) {
+    const inst = this.inst, car = this.car;
+    const SIZES = { cone: [0.6, 0.6], barrel: [1, 1], barrier: [3, 0.5], car: [4.4, 1.85], truck: [7.5, 2.5] };
+    for (const o of inst.obstacles || []) {
+      if (!o.solid) continue;
+      const sz = SIZES[o.kind] || [o.l || 1, o.w || 1];
+      const hit = U.obbCollide(car.obb(), { x: o.x, y: o.y, l: o.l || sz[0], w: o.w || sz[1], a: o.a || 0 });
+      if (!hit) continue;
+      if (o.kind === 'cone') {
+        o.solid = false; o.flat = true;
+        this.session.add('cone');
+        car.vx *= 0.93; car.vy *= 0.93;
+      } else {
+        car.x += hit.ax[0] * hit.ov; car.y += hit.ax[1] * hit.ov;
+        const vn = car.vx * hit.ax[0] + car.vy * hit.ax[1];
+        if (vn < 0) { car.vx -= vn * hit.ax[0] * 1.4; car.vy -= vn * hit.ax[1] * 1.4; }
+        car.vx *= 0.5; car.vy *= 0.5;
+        if (Math.abs(vn) > 1.4) {
+          this.session.add(o.event || 'collision', o.label);
+          car.flash = 0.3;
+        }
+      }
+    }
+    for (const tc of inst.traffic || []) {
+      tc.update(dt, [car, ...inst.traffic]);
+      const hit = U.obbCollide(car.obb(), tc.obb());
+      if (hit) {
+        car.x += hit.ax[0] * hit.ov; car.y += hit.ax[1] * hit.ov;
+        const vn = car.vx * hit.ax[0] + car.vy * hit.ax[1];
+        if (vn < 0) { car.vx -= vn * hit.ax[0] * 1.3; car.vy -= vn * hit.ax[1] * 1.3; }
+        car.vx *= 0.6; car.vy *= 0.6;
+        tc.speed = Math.min(tc.speed, 2);
+        this.session.add('collision-traffic');
+        car.flash = 0.3;
+      }
+    }
+    if (inst.traffic) inst.traffic = inst.traffic.filter(t => !t.gone);
+  },
+
+  updateZonesAndScore(dt, onRoad) {
+    const inst = this.inst, car = this.car;
+    let limit = inst.limit, inSchool = false, zoneText = null;
+    for (const z of inst.zones || []) {
+      if (U.inRect(car.x, car.y, z)) {
+        limit = z.limit;
+        inSchool = z.kind === 'school';
+        zoneText = z.kind === 'school' ? `🏫 SCHOOL ZONE — ${z.limit} mph` : `🚧 WORK ZONE — ${z.limit} mph`;
+      }
+    }
+    this.limit = limit;
+    UI.setZone(zoneText);
+
+    // tailgating: time-gap under ~0.85s to the car ahead at speed
+    let tail = false;
+    const fx = Math.cos(car.heading), fy = Math.sin(car.heading);
+    for (const tc of inst.traffic || []) {
+      const relX = tc.x - car.x, relY = tc.y - car.y;
+      const ahead = relX * fx + relY * fy;
+      const lat = Math.abs(-fy * relX + fx * relY);
+      if (ahead > 0 && lat < 1.7) {
+        const gap = ahead - (car.len + tc.len) / 2;
+        if (gap < Math.max(5, car.speed * 0.85) && car.speed > 9) tail = true;
+      }
+    }
+
+    const mph = car.speed * U.MPH;
+    this.session.tick(dt, {
+      moving: car.speed > 1,
+      mph: Math.round(mph),
+      mphOver: mph - limit,
+      inSchool,
+      offroad: !onRoad,
+      tailgating: tail,
+      tooSlow: !!inst.minMph && mph < inst.minMph && this.time > 10 && onRoad,
+    });
+  },
+
+  checkPark(dt) {
+    const bay = this.inst.goal.bay;
+    const corners = U.obbCorners(this.car.obb());
+    const cos = Math.cos(-(bay.a || 0)), sin = Math.sin(-(bay.a || 0));
+    const inside = corners.every(p => {
+      const dx = p[0] - bay.x, dy = p[1] - bay.y;
+      const lx = dx * cos - dy * sin, ly = dx * sin + dy * cos;
+      return Math.abs(lx) <= bay.l / 2 + 0.18 && Math.abs(ly) <= bay.w / 2 + 0.18;
+    });
+    if (inside && this.car.speed < 0.25) this.parkT += dt;
+    else this.parkT = 0;
+    if (this.parkT > 1.2 && !this.parked) {
+      this.parked = true;
+      this.session.add('parked');
+    }
+  },
+
   draw() {
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
