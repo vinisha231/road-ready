@@ -11,8 +11,11 @@ No installs, no accounts, no build step — just vanilla HTML/CSS/JS and a canva
 
 ### Real-ish physics
 - Throttle, braking, reverse, speed-sensitive steering, and a lateral-grip tire model.
-- Rain cuts your grip almost in half. Yes, you **will** slide if you take that turn at 47 mph in the rain.
-- Handbrake, skid marks, and a skid warning when the rear steps out.
+- Engine power tapers with speed — 0–30 is easy, 50–65 is a commitment.
+- Rain cuts your grip almost in half **and** stretches your braking distance. Yes, you **will** slide if you take that turn at 47 mph in the rain.
+- Handbrake, skid marks, tire screech, an engine note that follows your right foot, and a skid warning when the rear steps out.
+- Brake lights, reverse lights, and turn signals (Q/E) — unsignaled merges cost points, because the blinker is the only telepathy your car has.
+- Streetlights and oncoming headlights carve through the dark; rain splashes on the pavement; pedestrians pause at the curb before stepping out.
 
 ### Eight scenarios (each unlocks the next at 70+)
 | # | Scenario | The lesson |
@@ -50,8 +53,10 @@ No installs, no accounts, no build step — just vanilla HTML/CSS/JS and a canva
 | ↓ / S | Brake / reverse |
 | ← → / A D | Steer |
 | Space | Handbrake |
+| Q / E | Left / right turn signal (they're scored!) |
 | P | Peek at your phone (don't) |
 | R | Reset parking attempt |
+| M | Mute |
 | Esc | Pause |
 
 Desktop + keyboard required.
