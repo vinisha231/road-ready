@@ -120,6 +120,12 @@ button.danger { background: var(--red); color: #fff; }
   50% { transform: translateX(10px); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .logocar, #phone, #limitSign.over { animation: none; }
+  .toast { transition: none; }
+  .card { transition: none; }
+}
+
 /* ---- briefing ---- */
 .blurb { color: var(--muted); margin: 10px 0 18px; line-height: 1.5; }
 .screen h4 { margin-bottom: 8px; color: var(--amber); }
