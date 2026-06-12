@@ -31,6 +31,7 @@ class Session {
     this.tailT = 0; this.slowT = 0;
     this.maxMph = 0;
     this.fatal = false;
+    this.extraLines = []; // scenarios can inject custom feedback
     this._cooldown = {};
   }
 
@@ -69,7 +70,8 @@ class Session {
     score -= Math.min(10, this.slowT * 0.8);
     score = U.clamp(Math.round(score), 0, 100);
     if (this.fatal) score = Math.min(score, 8);
-    return { score, grade: Scoring.grade(score), lines: Scoring.feedback(this, score), events: this.events };
+    const lines = [...this.extraLines, ...Scoring.feedback(this, score)];
+    return { score, grade: Scoring.grade(score), lines, events: this.events };
   }
 }
 
