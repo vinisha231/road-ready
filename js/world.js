@@ -166,4 +166,96 @@ const World = {
       ctx.restore();
     }
   },
+
+  /* Scenery: {kind:'tree'|'bush'|'building', ...} — drawn under the car */
+  drawScenery(ctx, inst) {
+    for (const s of inst.scenery || []) {
+      if (s.kind === 'building') {
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillRect(s.x + 0.6, s.y + 0.6, s.w, s.h);
+        ctx.fillStyle = s.color || '#6e5f4e';
+        ctx.fillRect(s.x, s.y, s.w, s.h);
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = 0.2;
+        ctx.strokeRect(s.x + 0.4, s.y + 0.4, s.w - 0.8, s.h - 0.8);
+        if (s.label) this.text(ctx, s.label, s.x + s.w / 2, s.y + s.h / 2, 1.6, 'rgba(255,255,255,0.85)');
+      } else {
+        const r = s.r || (s.kind === 'bush' ? 0.9 : 2.2);
+        ctx.fillStyle = 'rgba(0,0,0,0.22)';
+        ctx.beginPath(); ctx.arc(s.x + 0.5, s.y + 0.5, r, 0, U.TAU); ctx.fill();
+        ctx.fillStyle = s.kind === 'bush' ? '#4e6b40' : '#395530';
+        ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, U.TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.07)';
+        ctx.beginPath(); ctx.arc(s.x - r * 0.25, s.y - r * 0.25, r * 0.55, 0, U.TAU); ctx.fill();
+      }
+    }
+  },
+
+  /* Painted marks: crosswalks, parking bays, arrows, road text */
+  drawMarks(ctx, inst) {
+    for (const m of inst.marks || []) {
+      ctx.save();
+      switch (m.kind) {
+        case 'crosswalk':
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          if (m.horiz) for (let xx = m.x; xx < m.x + m.w - 0.45; xx += 1.0) ctx.fillRect(xx, m.y, 0.55, m.h);
+          else for (let yy = m.y; yy < m.y + m.h - 0.45; yy += 1.0) ctx.fillRect(m.x, yy, m.w, 0.55);
+          break;
+        case 'bay':
+          ctx.translate(m.x, m.y); ctx.rotate(m.a || 0);
+          ctx.strokeStyle = m.target ? '#5fe07a' : 'rgba(255,255,255,0.75)';
+          ctx.lineWidth = m.target ? 0.22 : 0.12;
+          if (m.target) ctx.setLineDash([0.7, 0.45]);
+          ctx.strokeRect(-m.l / 2, -m.w / 2, m.l, m.w);
+          if (m.target) {
+            ctx.setLineDash([]);
+            World.text(ctx, 'P', 0, 0, 1.6, 'rgba(95,224,122,0.85)');
+          }
+          break;
+        case 'arrow':
+          ctx.translate(m.x, m.y); ctx.rotate(m.a || 0);
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.beginPath();
+          ctx.moveTo(1.4, 0); ctx.lineTo(0.2, -0.8); ctx.lineTo(0.2, -0.3); ctx.lineTo(-1.4, -0.3);
+          ctx.lineTo(-1.4, 0.3); ctx.lineTo(0.2, 0.3); ctx.lineTo(0.2, 0.8);
+          ctx.closePath(); ctx.fill();
+          break;
+        case 'text':
+          ctx.translate(m.x, m.y); ctx.rotate(m.a || 0);
+          World.text(ctx, m.text, 0, 0, m.size || 1.4, m.color || 'rgba(255,255,255,0.75)');
+          break;
+      }
+      ctx.restore();
+    }
+  },
+
+  /* Zones: {x,y,w,h,kind:'school'|'work', limit} — tinted overlays */
+  drawZones(ctx, inst) {
+    for (const z of inst.zones || []) {
+      ctx.fillStyle = z.kind === 'work' ? 'rgba(232,116,42,0.10)' : 'rgba(255,210,74,0.10)';
+      ctx.fillRect(z.x, z.y, z.w, z.h);
+    }
+  },
+
+  drawCheckpoint(ctx, cp, t) {
+    const pulse = 1 + Math.sin(t * 4) * 0.08;
+    ctx.strokeStyle = 'rgba(95,224,122,0.9)';
+    ctx.lineWidth = 0.3;
+    ctx.setLineDash([1.1, 0.7]);
+    ctx.beginPath(); ctx.arc(cp.x, cp.y, (cp.r || 4) * pulse, 0, U.TAU); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(95,224,122,0.18)';
+    ctx.beginPath(); ctx.arc(cp.x, cp.y, (cp.r || 4) * pulse, 0, U.TAU); ctx.fill();
+  },
+
+  onRoad(x, y, inst) {
+    for (const r of inst.roads || []) {
+      if (r.ring) {
+        const d = U.dist(x, y, r.cx, r.cy);
+        if (d >= r.ri - 0.4 && d <= r.ro + 0.4) return true;
+      } else if (U.inRect(x, y, r, 0.4)) return true;
+    }
+    for (const l of inst.lots || []) if (U.inRect(x, y, l, 0.4)) return true;
+    return false;
+  },
 };
