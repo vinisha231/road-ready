@@ -27,6 +27,7 @@ Scenarios.register({
       ],
       lots: [],
       obstacles: [
+        ...Array.from({ length: 10 }, (_, i) => ({ kind: 'lamp', x: 100 + i * 155, y: 76.4, a: Math.PI / 2 })),
         { kind: 'sign', x: 520, y: 96.5, diamond: true, text: '⚠', color: '#f7c948' },
         ...Build.coneLine(566, 92.5, 614, 90.2, 7),
         { kind: 'barrier', x: 625, y: 90.6, a: -0.1, l: 3.5, w: 0.6, solid: true, event: 'lane-end-crash' },
@@ -42,6 +43,7 @@ Scenarios.register({
         ...Build.treeRow(30, 106, 1580, 106, 26, 5),
       ],
       checkpoints: [{ x: 1565, y: 83.55, r: 10 }],
+      lights: Array.from({ length: 10 }, (_, i) => ({ x: 100 + i * 155, y: 77.5, r: 13 })),
       nextCp: 0,
       objective: 'Get up to speed and merge left before the cones',
       phone: true,

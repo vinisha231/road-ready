@@ -48,9 +48,10 @@ const Weather = {
     ctx.restore();
   },
 
-  /* Darkness overlay with a headlight cone cut out in front of the car */
+  /* Darkness overlay with a headlight cone cut out in front of the car.
+     Also punches out scenario streetlights and other cars' headlights. */
   _nightCanvas: null,
-  drawNight(ctx, w, h, car) {
+  drawNight(ctx, w, h, car, inst) {
     if (this.night <= 0.02 || !car) return;
     if (!this._nightCanvas || this._nightCanvas.width !== w || this._nightCanvas.height !== h) {
       this._nightCanvas = document.createElement('canvas');
@@ -82,6 +83,31 @@ const Weather = {
     g.moveTo(tipX, tipY);
     g.arc(tipX, tipY, reach, car.heading - spread, car.heading + spread);
     g.closePath(); g.fill();
+    // streetlight pools
+    for (const L of (inst && inst.lights) || []) {
+      const [lx, ly] = Camera.toScreen(L.x, L.y, w, h);
+      const r = (L.r || 10) * z;
+      if (lx < -r || lx > w + r || ly < -r || ly > h + r) continue;
+      const lg = g.createRadialGradient(lx, ly, 0, lx, ly, r);
+      lg.addColorStop(0, 'rgba(0,0,0,0.75)');
+      lg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = lg;
+      g.beginPath(); g.arc(lx, ly, r, 0, U.TAU); g.fill();
+    }
+    // other cars carry headlights too
+    for (const tc of (inst && inst.traffic) || []) {
+      const [tx2, ty2] = Camera.toScreen(tc.x, tc.y, w, h);
+      if (tx2 < -300 || tx2 > w + 300 || ty2 < -300 || ty2 > h + 300) continue;
+      const tr = 22 * z;
+      const tg = g.createRadialGradient(tx2, ty2, 0, tx2, ty2, tr);
+      tg.addColorStop(0, 'rgba(0,0,0,0.6)');
+      tg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = tg;
+      g.beginPath();
+      g.moveTo(tx2, ty2);
+      g.arc(tx2, ty2, tr, tc.heading - 0.26, tc.heading + 0.26);
+      g.closePath(); g.fill();
+    }
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(nc, 0, 0);

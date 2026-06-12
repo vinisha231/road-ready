@@ -122,6 +122,16 @@ const World = {
           ctx.beginPath(); ctx.roundRect(L * 0.24, -W / 2, L * 0.26, W, 0.4); ctx.fill();
           break;
         }
+        case 'lamp': {
+          ctx.strokeStyle = '#3c424c';
+          ctx.lineWidth = 0.12;
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0.95, 0); ctx.stroke();
+          ctx.fillStyle = '#3c424c';
+          ctx.beginPath(); ctx.arc(0, 0, 0.18, 0, U.TAU); ctx.fill();
+          ctx.fillStyle = '#ffe9a8';
+          ctx.beginPath(); ctx.arc(1.0, 0, 0.24, 0, U.TAU); ctx.fill();
+          break;
+        }
         case 'deerprop': {
           ctx.fillStyle = '#a87f4f';
           ctx.beginPath(); ctx.ellipse(0, 0, 0.85, 0.38, 0, 0, U.TAU); ctx.fill();

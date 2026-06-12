@@ -336,7 +336,7 @@ const Sim = {
     }
     this.car.draw(ctx);
     World.drawScenery(ctx, inst);
-    Weather.drawNight(ctx, W, H, this.car);
+    Weather.drawNight(ctx, W, H, this.car, inst);
     Weather.drawRain(ctx, W, H);
   },
 };

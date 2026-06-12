@@ -23,6 +23,8 @@ Scenarios.register({
       roads: [{ x: 0, y: 42, w: 170, h: 7.6, lanes: 2, twoWay: true }],
       lots: [{ x: 0, y: 49.6, w: 170, h: 2.7 }],
       obstacles: [
+        { kind: 'lamp', x: 45, y: 53.2, a: -Math.PI / 2 },
+        { kind: 'lamp', x: 95, y: 53.2, a: -Math.PI / 2 },
         Build.parkedCar(62, 50.95, 0, '#7d8aa0'),
         Build.parkedCar(74.6, 50.95, 0, '#b08968'),
         Build.parkedCar(30, 50.95, 0, '#6f7d94'),
@@ -39,6 +41,7 @@ Scenarios.register({
       ],
       checkpoints: [],
       nextCp: 0,
+      lights: [{ x: 45, y: 51, r: 12 }, { x: 95, y: 51, r: 12 }],
       goal: { type: 'park', bay: { x: 68.3, y: 50.95, l: 7.4, w: 2.5, a: 0 } },
       objective: '🏁 Back into the gap between the gray and tan cars',
       phone: false,
