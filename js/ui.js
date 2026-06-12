@@ -119,4 +119,95 @@ const UI = {
   phoneHide() { this.el('phone').classList.add('hidden'); },
   peekStart() { this.el('peekBlur').classList.remove('hidden'); },
   peekEnd() { this.el('peekBlur').classList.add('hidden'); },
+
+  /* ---- results ---- */
+  buildResults(sim, res) {
+    const s = sim.scenario;
+    const isFinalBoss = s.id === 'parallel-parking';
+    const gradeShown = isFinalBoss ? 'Needs Improvement' : res.grade;
+    const gradeNote = isFinalBoss
+      ? `<p class="grade-note">Score ${res.score}/100, technically. But parallel parking grades are capped at “Needs Improvement” by federal tradition.*<br><span class="fine">*Attempt #${sim.attempts}. Infinite attempts remain. The curb is patient.</span></p>`
+      : '';
+    const passed = res.score >= Unlocks.PASS;
+    const hue = res.score >= 80 ? 'var(--green)' : res.score >= 60 ? 'var(--amber)' : 'var(--red)';
+    this.el('results').innerHTML = `
+      <div class="inner">
+        <div class="results-grid">
+          <div class="results-main">
+            <h2>${s.emoji} ${s.title} — drive complete</h2>
+            <div class="score-row">
+              <div class="score-ring" style="background:conic-gradient(${hue} ${res.score * 3.6}deg, #2a3140 0deg)"><span>${res.score}</span></div>
+              <div class="grade-block">
+                <div class="grade" style="color:${hue}">${gradeShown}</div>
+                <div class="grade-sub">${passed && !isFinalBoss ? '✅ next scenario unlocked' : (isFinalBoss ? '' : `${Unlocks.PASS}+ unlocks the next scenario`)}</div>
+              </div>
+            </div>
+            ${gradeNote}
+            <ul class="feedback">${res.lines.map(l => `<li>${l}</li>`).join('')}</ul>
+            <div class="stats-row">
+              <span>⏱ ${Math.round(sim.session.t)}s</span>
+              <span>🚀 top speed ${sim.session.maxMph} mph</span>
+              <span>⚠️ ${sim.session.events.filter(e => e.pts < 0).length} incidents</span>
+            </div>
+            <div class="row">
+              <button id="againBtn">Drive again</button>
+              ${sim.clip ? '<button class="ghost" id="replayBtn">🎬 Watch your worst moment</button>' : ''}
+              <button class="ghost" id="shareBtn">Share score</button>
+              <button class="ghost" id="menuBtn">Menu</button>
+            </div>
+          </div>
+          <aside class="results-side">
+            <h3>🏆 Leaderboard</h3>
+            ${Leaderboard.html(s.id, res.score)}
+          </aside>
+        </div>
+      </div>`;
+    this.el('againBtn').addEventListener('click', () => Sim.start(s.id));
+    this.el('menuBtn').addEventListener('click', () => { Sim.state = 'menu'; UI.buildMenu(); });
+    if (sim.clip) this.el('replayBtn').addEventListener('click', () => Sim.startReplay());
+    this.el('shareBtn').addEventListener('click', (e) => UI.share(sim, res, gradeShown, e.target));
+    this.show('results');
+  },
+
+  share(sim, res, gradeShown, btn) {
+    const worst = [...sim.session.events].sort((a, b) => a.pts - b.pts)[0];
+    const text = `🚗 RoadReady: I scored ${res.score}/100 (${gradeShown}) on ${sim.scenario.title}.` +
+      (worst && worst.pts < 0 ? ` Lowlight: ${worst.label.toLowerCase()}.` : ' Flawless, honestly.') +
+      ` Beat me: ${location.href}`;
+    if (navigator.share) {
+      navigator.share({ text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Share score'; }, 1600);
+      }).catch(() => {});
+    }
+  },
+
+  buildPause() {
+    this.el('pause').innerHTML = `
+      <div class="inner narrow center">
+        <h2>Paused</h2>
+        <p class="muted">The road will wait. Unlike your mom in the school pickup line.</p>
+        <div class="row center">
+          <button id="resumeBtn">Resume</button>
+          <button class="ghost" id="restartBtn">Restart</button>
+          <button class="ghost" id="quitBtn">Quit to menu</button>
+        </div>
+      </div>`;
+    this.el('resumeBtn').addEventListener('click', () => { Sim.state = 'play'; UI.show(null); });
+    this.el('restartBtn').addEventListener('click', () => Sim.start(Sim.scenario.id));
+    this.el('quitBtn').addEventListener('click', () => { Sim.state = 'menu'; UI.buildMenu(); });
+    this.show('pause');
+  },
+
+  replayCaption(clip, show) {
+    const c = this.el('replayCap');
+    if (!show) return c.classList.add('hidden');
+    c.innerHTML = `<div class="rc-tag">🎬 YOUR WORST MOMENT</div>
+      <div class="rc-event">${clip.event.label} (${clip.event.pts}) — ${Math.round(clip.event.t)}s into the drive</div>
+      <button class="ghost" id="rcBack">Back to results</button>`;
+    c.classList.remove('hidden');
+    this.el('rcBack').addEventListener('click', () => Sim.endReplay());
+  },
 };
