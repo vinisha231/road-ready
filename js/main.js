@@ -68,6 +68,11 @@ const Sim = {
     this._last = now;
     if (this.state === 'play') this.update(dt);
     else if (this.state === 'replay') this.updateReplay(dt);
+    else if (this.state === 'brief' || this.state === 'results') {
+      // Enter starts/retries, Esc backs out to the menu
+      if (Input.justPressed('Enter')) this.start(this.scenario.id);
+      else if (Input.justPressed('Escape')) { this.state = 'menu'; UI.buildMenu(); }
+    }
     if (this.state === 'play' || this.state === 'replay' || this.state === 'pause') {
       Weather.updateRain(dt, this.canvas.width, this.canvas.height);
     }
