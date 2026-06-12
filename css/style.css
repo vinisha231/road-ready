@@ -228,8 +228,11 @@ button.danger { background: var(--red); color: #fff; }
 .board li:first-child b { color: var(--amber); }
 
 /* ---- replay caption ---- */
+/* no transform here: the letterbox bars are position:fixed children and a
+   transformed ancestor would trap them */
 #replayCap {
-  position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%);
+  position: absolute; left: 0; right: 0; bottom: 30px;
+  margin: 0 auto; width: fit-content;
   z-index: 16; text-align: center;
   background: rgba(15,18,24,0.9); border: 1px solid #2a3343; border-radius: var(--radius);
   padding: 16px 26px;
