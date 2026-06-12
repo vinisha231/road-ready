@@ -49,6 +49,10 @@ Scenarios.register({
       _passT: 8,
 
       update(sim, dt) {
+        // the curb keeps score too
+        const onCurb = sim.car.y + sim.car.wid / 2 > 52.28;
+        if (onCurb && !this._onCurb && sim.car.speed > 0.4) sim.session.add('curb');
+        this._onCurb = onCurb;
         // the occasional passerby, for psychological pressure
         this._passT -= dt;
         if (this._passT <= 0) {
