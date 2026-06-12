@@ -190,3 +190,59 @@ button.danger { background: var(--red); color: #fff; }
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   font-size: 1.3rem; font-weight: 700;
 }
+
+/* ---- results ---- */
+.results-grid { display: grid; grid-template-columns: 1fr 280px; gap: 28px; }
+@media (max-width: 800px) { .results-grid { grid-template-columns: 1fr; } }
+.score-row { display: flex; align-items: center; gap: 24px; margin: 22px 0; }
+.score-ring {
+  width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.score-ring span {
+  background: var(--bg); width: 92px; height: 92px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.1rem; font-weight: 800;
+}
+.grade { font-size: 2rem; font-weight: 900; }
+.grade-sub { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+.grade-note { color: var(--amber); font-size: 0.95rem; margin-bottom: 14px; line-height: 1.5; }
+.grade-note .fine { color: var(--muted); font-size: 0.78rem; }
+.feedback { margin: 0 0 18px 20px; line-height: 1.8; }
+.stats-row { display: flex; gap: 18px; color: var(--muted); font-size: 0.9rem; flex-wrap: wrap; }
+.results-side {
+  background: var(--panel); border: 1.5px solid #2a3343; border-radius: var(--radius);
+  padding: 18px; height: fit-content;
+}
+.results-side h3 { margin-bottom: 12px; }
+.board { list-style: none; counter-reset: rank; }
+.board li {
+  counter-increment: rank;
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 7px 8px; border-radius: 8px; font-size: 0.92rem;
+}
+.board li::before { content: counter(rank); color: var(--muted); width: 18px; font-weight: 700; }
+.board li b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.board li .bdate { color: var(--muted); font-size: 0.75rem; }
+.board li.me { background: rgba(255,210,74,0.12); }
+.board li:first-child b { color: var(--amber); }
+
+/* ---- replay caption ---- */
+#replayCap {
+  position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%);
+  z-index: 16; text-align: center;
+  background: rgba(15,18,24,0.9); border: 1px solid #2a3343; border-radius: var(--radius);
+  padding: 16px 26px;
+}
+.rc-tag { color: var(--amber); font-weight: 900; letter-spacing: 0.14em; font-size: 0.8rem; }
+.rc-event { margin: 8px 0 12px; font-size: 1.05rem; }
+
+/* letterbox bars for cinema feel */
+#replayCap::before {
+  content: ''; position: fixed; left: 0; right: 0; top: 0; height: 56px;
+  background: #000; pointer-events: none;
+}
+#replayCap::after {
+  content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 56px;
+  background: #000; pointer-events: none; z-index: -1;
+}
