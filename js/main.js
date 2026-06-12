@@ -285,6 +285,28 @@ const Sim = {
     if (this.state !== 'replay' && inst.checkpoints && inst.nextCp < inst.checkpoints.length) {
       World.drawCheckpoint(ctx, inst.checkpoints[inst.nextCp], this.time);
     }
+    // guidance arrow toward the current objective when it is far away
+    if (this.state === 'play') {
+      let tx = null, ty = null;
+      if (inst.checkpoints && inst.nextCp < inst.checkpoints.length) {
+        tx = inst.checkpoints[inst.nextCp].x; ty = inst.checkpoints[inst.nextCp].y;
+      } else if (inst.goal && inst.goal.type === 'park' && !this.parked) {
+        tx = inst.goal.bay.x; ty = inst.goal.bay.y;
+      }
+      if (tx !== null && U.dist(this.car.x, this.car.y, tx, ty) > 26) {
+        const a = Math.atan2(ty - this.car.y, tx - this.car.x);
+        ctx.save();
+        ctx.translate(this.car.x + Math.cos(a) * 6.2, this.car.y + Math.sin(a) * 6.2);
+        ctx.rotate(a);
+        ctx.globalAlpha = 0.6 + Math.sin(this.time * 5) * 0.25;
+        ctx.fillStyle = '#5fe07a';
+        ctx.beginPath();
+        ctx.moveTo(1.2, 0); ctx.lineTo(-0.6, -0.75); ctx.lineTo(-0.6, 0.75);
+        ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+    }
     for (const tc of inst.traffic || []) tc.draw(ctx);
     Hazards.draw(ctx, this.time);
     if (this.state === 'replay' && this.clip) {
