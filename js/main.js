@@ -66,6 +66,10 @@ const Sim = {
   loop(now) {
     const dt = Math.min(0.045, Math.max(0.001, (now - this._last) / 1000));
     this._last = now;
+    if (Input.justPressed('KeyM')) {
+      UI.note(Sound.toggleMute() ? '🔇 sound off' : '🔊 sound on');
+    }
+    if (this.state !== 'play') { Sound.engine(0, 0, false); Sound.screech(false); }
     if (this.state === 'play') this.update(dt);
     else if (this.state === 'replay') this.updateReplay(dt);
     else if (this.state === 'brief' || this.state === 'results') {
@@ -111,6 +115,9 @@ const Sim = {
     if (decel > 9.5 && prevSpeed > 8 && Hazards.actors.length === 0 && inst.phase !== 'stop') {
       this.session.add('harsh-brake');
     }
+
+    Sound.engine(car.speed, c.throttle, true);
+    Sound.screech(car.skidding && car.speed > 4);
 
     this.updateCollisions(dt);
     this.updateZonesAndScore(dt, onRoad);
