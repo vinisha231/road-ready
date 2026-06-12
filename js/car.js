@@ -36,7 +36,11 @@ class Car {
     this.steer += U.clamp(target - this.steer, -3.2 * dt, 3.2 * dt);
     if (Math.abs(vf) > 0.05) this.heading += (vf / this.wheelbase) * Math.tan(this.steer) * dt;
 
-    vl = 0; // perfect lateral grip for now
+    // lateral grip: tires bleed off sideways velocity at `grip` per second.
+    // Rain or a pulled handbrake lowers it — corner too fast and you slide.
+    const g = grip * (c.handbrake ? 0.22 : 1) * (0.4 + 0.6 * surface);
+    vl *= Math.exp(-g * dt);
+    this.skidding = Math.abs(vl) > 1.55 || (c.handbrake && Math.abs(vf) > 4);
 
     this.vx = fx * vf + rx * vl;
     this.vy = fy * vf + ry * vl;
