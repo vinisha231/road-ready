@@ -94,6 +94,9 @@ const Sim = {
       UI.attempts(this.attempts);
     }
 
+    if (Input.justPressed('KeyQ')) car.setSignal('L');
+    if (Input.justPressed('KeyE')) car.setSignal('R');
+
     const c = Input.controls();
     const onRoad = World.onRoad(car.x, car.y, inst);
     const prevSpeed = car.forwardSpeed;

@@ -9,6 +9,15 @@ class Car {
     this.wheelbase = 2.6;
     this.skidding = false;
     this.flash = 0;
+    this.signal = null; // 'L' | 'R'
+    this._sigT = 0;
+    this._sigH0 = 0;
+  }
+
+  setSignal(side) {
+    this.signal = this.signal === side ? null : side;
+    this._sigT = 0;
+    this._sigH0 = this.heading;
   }
 
   static marks = []; // shared skid mark segments {x1,y1,x2,y2}
@@ -67,6 +76,12 @@ class Car {
     this.y += this.vy * dt;
     if (this.flash > 0) this.flash -= dt;
 
+    // blinkers self-cancel after the turn (or after being forgotten)
+    if (this.signal) {
+      this._sigT += dt;
+      if (this._sigT > 10 || Math.abs(U.angDiff(this._sigH0, this.heading)) > 0.55) this.signal = null;
+    }
+
     // lay rubber from the rear axle while sliding
     const rax = this.x - fx * this.len * 0.32, ray = this.y - fy * this.len * 0.32;
     if (this.skidding && this.speed > 2 && this._rear) {
@@ -117,6 +132,14 @@ class Car {
       ctx.fillStyle = '#f2f4f8';
       ctx.fillRect(-L / 2 + 0.06, -0.42, 0.18, 0.32);
       ctx.fillRect(-L / 2 + 0.06, 0.1, 0.18, 0.32);
+    }
+    // turn signals (left = driver side = -y when heading east)
+    if (this.signal && Math.floor(performance.now() / 380) % 2 === 0) {
+      const sy = this.signal === 'L' ? -1 : 1;
+      const y0 = sy === 1 ? W / 2 - 0.46 : -W / 2 + 0.06;
+      ctx.fillStyle = '#ffb73b';
+      ctx.fillRect(L / 2 - 0.34, y0, 0.28, 0.4);
+      ctx.fillRect(-L / 2 + 0.06, y0, 0.28, 0.4);
     }
     ctx.restore();
   }
