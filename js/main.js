@@ -25,6 +25,7 @@ const Sim = {
       if (this.state === 'play') { this.state = 'pause'; UI.buildPause(); }
     });
     Input.init();
+    Sound.init();
     UI.buildMenu();
     this._last = performance.now();
     requestAnimationFrame((t) => this.loop(t));
@@ -106,6 +107,7 @@ const Sim = {
       const cp = inst.checkpoints[inst.nextCp];
       if (U.dist(car.x, car.y, cp.x, cp.y) < (cp.r || 4) + 1.2) {
         inst.nextCp++;
+        Sound.checkpoint();
         if (cp.objective) UI.setObjective(cp.objective);
       }
     }

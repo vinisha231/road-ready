@@ -55,6 +55,7 @@ Scenarios.register({
         for (const tc of this.traffic) {
           if (!tc._honked && Math.abs(tc.x - sim.car.x) < 9 && sim.car.speed < 2) {
             tc._honked = true;
+            Sound.honk();
             UI.note('🚗 honk. (they could not do it either)');
           }
         }

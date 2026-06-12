@@ -114,6 +114,7 @@ const UI = {
   },
 
   toast(ev) {
+    Sound[ev.pts >= 0 ? 'good' : 'bad']();
     const t = document.createElement('div');
     t.className = 'toast ' + (ev.pts >= 0 ? 'good' : 'bad');
     t.innerHTML = `<b>${ev.pts > 0 ? '+' : ''}${ev.pts}</b> ${ev.label}`;
