@@ -48,4 +48,30 @@ class Car {
     this.y += this.vy * dt;
     if (this.flash > 0) this.flash -= dt;
   }
+
+  draw(ctx) {
+    const L = this.len, W = this.wid;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.heading);
+    // tires
+    ctx.fillStyle = '#15171c';
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      ctx.fillRect(sx * L * 0.32 - 0.42, sy * W * 0.5 - 0.16, 0.84, 0.32);
+    }
+    // body
+    ctx.fillStyle = this.flash > 0 ? '#ffffff' : this.color;
+    ctx.beginPath(); ctx.roundRect(-L / 2, -W / 2, L, W, 0.55); ctx.fill();
+    // cabin glass
+    ctx.fillStyle = 'rgba(18,24,36,0.85)';
+    ctx.beginPath(); ctx.roundRect(-L * 0.20, -W / 2 + 0.24, L * 0.46, W - 0.48, 0.3); ctx.fill();
+    // headlights & taillights
+    ctx.fillStyle = '#ffefb0';
+    ctx.fillRect(L / 2 - 0.30, -W / 2 + 0.16, 0.24, 0.44);
+    ctx.fillRect(L / 2 - 0.30, W / 2 - 0.60, 0.24, 0.44);
+    ctx.fillStyle = '#e8473f';
+    ctx.fillRect(-L / 2 + 0.06, -W / 2 + 0.16, 0.2, 0.4);
+    ctx.fillRect(-L / 2 + 0.06, W / 2 - 0.56, 0.2, 0.4);
+    ctx.restore();
+  }
 }
