@@ -76,4 +76,47 @@ const UI = {
     this.el('backBtn').addEventListener('click', () => UI.buildMenu());
     this.show('brief');
   },
+
+  /* ---- HUD ---- */
+  setObjective(text) { this.el('objective').textContent = text; },
+
+  updateHUD(sim) {
+    const mph = Math.round(sim.car.speed * U.MPH);
+    this.el('speedVal').textContent = mph;
+    this.el('limitVal').textContent = sim.limit;
+    this.el('limitSign').classList.toggle('over', mph > sim.limit + 4);
+    this.el('speedo').classList.toggle('skid', sim.car.skidding);
+  },
+
+  setZone(text) {
+    const z = this.el('zoneBanner');
+    if (text) { z.textContent = text; z.classList.remove('hidden'); }
+    else z.classList.add('hidden');
+  },
+
+  attempts(n) {
+    const a = this.el('attempts');
+    if (n === null) a.classList.add('hidden');
+    else {
+      a.classList.remove('hidden');
+      a.innerHTML = `Attempt <b>#${n}</b> <span class="hint">(R to reset — no judgment*)</span>`;
+    }
+  },
+
+  toast(ev) {
+    const t = document.createElement('div');
+    t.className = 'toast ' + (ev.pts >= 0 ? 'good' : 'bad');
+    t.innerHTML = `<b>${ev.pts > 0 ? '+' : ''}${ev.pts}</b> ${ev.label}`;
+    this.el('toasts').appendChild(t);
+    setTimeout(() => t.classList.add('out'), 2600);
+    setTimeout(() => t.remove(), 3100);
+  },
+
+  phoneShow(msg) {
+    this.el('phoneMsg').textContent = msg;
+    this.el('phone').classList.remove('hidden');
+  },
+  phoneHide() { this.el('phone').classList.add('hidden'); },
+  peekStart() { this.el('peekBlur').classList.remove('hidden'); },
+  peekEnd() { this.el('peekBlur').classList.add('hidden'); },
 };
