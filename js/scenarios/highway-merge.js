@@ -8,6 +8,7 @@ Scenarios.register({
   brief: 'Dusk on the interstate. You start on the acceleration lane — get up to highway speed, check the traffic, and merge before the cones end the discussion. Then survive to the end without tailgating anyone into therapy.',
   objectives: [
     'Accelerate to highway speed and merge before the lane ends',
+    'Signal the merge — Q is your left blinker',
     'Keep a real following distance (no tailgating)',
     'Going way under 45 mph on a 65 highway is its own hazard',
     'Phone stays in your pocket at 65 mph',
@@ -61,6 +62,7 @@ Scenarios.register({
         }
         if (!this._merged && sim.car.y < 89 && sim.car.x > 100) {
           this._merged = true;
+          sim.session.add(sim.car.signal === 'L' ? 'signaled' : 'no-signal');
           UI.setObjective('Merged. Now keep your gap and ride it out →');
         }
       },

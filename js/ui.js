@@ -42,7 +42,7 @@ const UI = {
           <button class="ghost" id="parentBtn">Parent / Instructor view</button>
         </div>
         <div class="cards">${cards}</div>
-        <p class="foot">↑↓←→ or WASD to drive · Space handbrake · P to (regrettably) check your phone · R resets a parking attempt · Esc pauses<br>
+        <p class="foot">↑↓←→ or WASD to drive · Space handbrake · Q/E blinkers · P to (regrettably) check your phone · R resets a parking attempt · M mutes · Esc pauses<br>
         Not a substitute for actual driver's ed. But significantly cheaper.</p>
       </div>`;
     this.el('playerName').addEventListener('change', (e) => {

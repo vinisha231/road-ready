@@ -15,6 +15,9 @@ const Scoring = {
     'lane-end-crash':    { pts: -15,  label: 'Ran out of merge lane' },
     'great-stop':        { pts: 8,    label: 'Clean emergency stop' },
     'parked':            { pts: 10,   label: 'Parked it' },
+    'no-signal':         { pts: -6,   label: 'Changed lanes without signaling' },
+    'signaled':          { pts: 3,    label: 'Signaled the lane change' },
+    'curb':              { pts: -3,   label: 'Clipped the curb' },
   },
 };
 
@@ -100,6 +103,10 @@ Scoring.feedback = function (s, score) {
   if (count('hit-animal') > 0) lines.push('An animal was harmed in the making of this drive. Scan the roadsides, especially at night.');
   if (count('wrong-way') > 0) lines.push('You went the wrong way around the roundabout. Everyone else was wrong, surely.');
   if (count('failed-yield') > 0) lines.push('Yield means they go first. It is not a vibe check.');
+  const nosig = count('no-signal');
+  if (nosig > 0) lines.push(`${nosig} lane change${nosig > 1 ? 's' : ''} without a blinker. The turn signal is the only telepathy your car has — use it (Q/E).`);
+  else if (count('signaled') > 0) lines.push('You used your blinkers unprompted. DMV examiners everywhere just felt a disturbance of joy.');
+  if (count('curb') > 0) lines.push(`Curb strikes: ${count('curb')}. Rims are expensive; curbs are patient.`);
   if (s.offroadT > 4) lines.push(`${Math.round(s.offroadT)}s spent off the road. The grass is not a shortcut.`);
   if (s.slowT > 5) lines.push('Driving way under highway speed is its own hazard. Confidence, but earned.');
   if (count('harsh-brake') >= 3) lines.push('Lots of slam-braking. Smooth inputs, smooth life.');

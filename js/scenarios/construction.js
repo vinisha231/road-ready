@@ -7,7 +7,7 @@ Scenarios.register({
   blurb: 'Right lane closed. Cones everywhere. They remember being hit.',
   brief: 'Road work ahead — the right lane is closed and a slow lead car sets the pace. Merge left at the taper, crawl past the crew at 25, and merge back when it opens. Each cone you flatten is recorded in a ledger somewhere.',
   objectives: [
-    'Merge left before the cone taper',
+    'Merge left before the cone taper — with a blinker (Q left, E right)',
     'Hold 25 mph through the work zone',
     'Do not tailgate the pace car (it will not be hurried)',
     'Cones: 0 casualties is the goal',
@@ -55,6 +55,17 @@ Scenarios.register({
       hazards: [
         { x: 420, y: 64, r: 26, kind: 'worker', sx: 438, sy: 67.8, dx: -0.3, dy: -1, range: 3.2 },
       ],
+      update(sim) {
+        // blinker etiquette at both ends of the lane shift
+        if (!this._sigIn && sim.car.x > 180 && sim.car.x < 330 && sim.car.y < 65.6) {
+          this._sigIn = true;
+          sim.session.add(sim.car.signal === 'L' ? 'signaled' : 'no-signal');
+        }
+        if (!this._sigOut && sim.car.x > 560 && sim.car.x < 720 && sim.car.y > 66.2) {
+          this._sigOut = true;
+          sim.session.add(sim.car.signal === 'R' ? 'signaled' : 'no-signal');
+        }
+      },
       isComplete() { return this.nextCp >= this.checkpoints.length; },
     };
   },
