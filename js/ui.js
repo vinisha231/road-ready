@@ -31,9 +31,11 @@ const UI = {
           </div>
         </div>`;
     }
+    const needsKeyboard = !window.matchMedia('(pointer: fine)').matches || window.innerWidth < 700;
     this.el('menu').innerHTML = `
       <div class="inner">
-        <h1 class="logo"><span class="road">Road</span><span class="ready">Ready</span> 🚗</h1>
+        <h1 class="logo"><span class="road">Road</span><span class="ready">Ready</span> <span class="logocar">🚗</span></h1>
+        ${needsKeyboard ? '<div class="kbd-warn">🚸 RoadReady needs a physical keyboard and a decent-sized screen. Grab a laptop — consider it your first driving lesson: preparation.</div>' : ''}
         <p class="tagline">A driving simulator for teens. Crash here, not out there.</p>
         <div class="menu-bar">
           <label class="namefield">Driver name <input id="playerName" maxlength="12" value="${name}" placeholder="YOU"></label>
