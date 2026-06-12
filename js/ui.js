@@ -103,6 +103,16 @@ const UI = {
     }
   },
 
+  /* plain notification toast, no points attached */
+  note(text) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = text;
+    this.el('toasts').appendChild(t);
+    setTimeout(() => t.classList.add('out'), 2400);
+    setTimeout(() => t.remove(), 2900);
+  },
+
   toast(ev) {
     const t = document.createElement('div');
     t.className = 'toast ' + (ev.pts >= 0 ? 'good' : 'bad');
