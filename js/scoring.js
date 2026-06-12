@@ -64,7 +64,7 @@ class Session {
     this.speedPct = pct(this.speedingT);
     this.tailPct = pct(this.tailT);
     let score = 100 + this.bonuses - this.deductions;
-    score -= Math.min(25, this.speedingT * 1.2 + this.schoolSpeedingT * 2.4);
+    score -= Math.min(25, this.speedingT * 1.5 + this.schoolSpeedingT * 3.0);
     score -= Math.min(20, this.tailT * 1.0);
     score -= Math.min(15, this.offroadT * 1.5);
     score -= Math.min(10, this.slowT * 0.8);
