@@ -13,6 +13,8 @@ class Walker {
     this.rewarded = false;
     this.size = kind === 'squirrel' ? 0.55 : kind === 'deer' ? 1.7 : kind === 'cart' ? 1.0 : 0.75;
     this._zigT = 0; this._zig = 0;
+    // people glance up from their phones for a beat before stepping out
+    this.wait = (kind === 'kid' || kind === 'adult' || kind === 'worker') ? U.rand(0.3, 0.7) : 0;
   }
 
   get done() { return this.dead || this.traveled > this.range; }
@@ -20,6 +22,7 @@ class Walker {
 
   update(dt) {
     if (this.dead) return;
+    if (this.wait > 0) { this.wait -= dt; return; }
     if (this.kind === 'squirrel') {
       // squirrels do not believe in straight lines
       this._zigT -= dt;
