@@ -28,9 +28,23 @@ class AICar {
     tgt = this.path[this.i >= this.path.length ? 0 : this.i];
     const des = Math.atan2(tgt[1] - this.y, tgt[0] - this.x);
     this.heading += U.clamp(U.angDiff(this.heading, des), -1.9 * dt, 1.9 * dt);
+
+    // brake for anything ahead in our lane (player included)
+    let want = this.cruise;
+    const fx = Math.cos(this.heading), fy = Math.sin(this.heading);
+    for (const b of blockers || []) {
+      if (b === this) continue;
+      const relX = b.x - this.x, relY = b.y - this.y;
+      const ahead = relX * fx + relY * fy;
+      const lat = Math.abs(-fy * relX + fx * relY);
+      if (ahead > 1 && ahead < 17 && lat < 2.3) {
+        want = Math.min(want, ahead < 7.5 ? 0 : this.cruise * (ahead - 7.5) / 9.5);
+      }
+    }
+    this.speed += U.clamp(want - this.speed, -8 * dt, 2.8 * dt);
+
     this.x += Math.cos(this.heading) * this.speed * dt;
     this.y += Math.sin(this.heading) * this.speed * dt;
-    this.speed += U.clamp(this.cruise - this.speed, -7.5 * dt, 2.8 * dt);
   }
 
   draw(ctx) {
