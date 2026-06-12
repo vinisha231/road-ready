@@ -17,8 +17,20 @@ const Weather = {
   brakeFactor() { return 1 - 0.25 * this.rain; },
 
   _drops: [],
+  _splashes: [],
+  _splashAcc: 0,
   updateRain(dt, w, h) {
     if (this.rain <= 0) return;
+    // ground splash rings, spawned within the visible world
+    const z = Camera.scale();
+    const exX = w / z / 2, exY = h / z / 2;
+    this._splashAcc += 70 * this.rain * dt;
+    while (this._splashAcc > 1) {
+      this._splashAcc -= 1;
+      this._splashes.push({ x: Camera.x + U.rand(-exX, exX), y: Camera.y + U.rand(-exY, exY), age: 0 });
+    }
+    for (const s of this._splashes) s.age += dt;
+    this._splashes = this._splashes.filter(s => s.age < 0.45);
     const want = Math.round(140 * this.rain);
     while (this._drops.length < want) {
       this._drops.push({ x: Math.random() * w, y: Math.random() * h, s: U.rand(620, 980), l: U.rand(14, 26) });
@@ -27,6 +39,19 @@ const Weather = {
       d.y += d.s * dt;
       d.x -= d.s * 0.18 * dt;
       if (d.y > h + 30) { d.y = -30; d.x = Math.random() * (w + 200); }
+    }
+  },
+
+  /* world-space splash rings — call while the world transform is active */
+  drawSplashes(ctx) {
+    if (this.rain <= 0 || !this._splashes.length) return;
+    ctx.lineWidth = 0.06;
+    for (const s of this._splashes) {
+      const k = s.age / 0.45;
+      ctx.strokeStyle = `rgba(200,222,242,${(1 - k) * 0.3})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 0.12 + k * 1.4, 0, U.TAU);
+      ctx.stroke();
     }
   },
 

@@ -294,6 +294,7 @@ const Sim = {
     World.drawRoads(ctx, inst);
     World.drawZones(ctx, inst);
     World.drawMarks(ctx, inst);
+    Weather.drawSplashes(ctx);
     Car.drawMarks(ctx);
     World.drawObstacles(ctx, inst);
     if (inst.draw) inst.draw(ctx, this);
