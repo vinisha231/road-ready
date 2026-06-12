@@ -28,16 +28,23 @@ class Car {
   obb() { return { x: this.x, y: this.y, l: this.len, w: this.wid, a: this.heading }; }
 
   /* c: {throttle -1..1, steer -1..1, handbrake}; grip: lateral decay rate (1/s);
-     surface: 1 on asphalt, <1 on grass */
-  update(dt, c, grip, surface = 1) {
-    const ACCEL = 6.5, BRAKE = 11, MAXFWD = 35, MAXREV = -6.5;
+     surface: 1 on asphalt, <1 on grass; brakeFx: braking efficiency (rain < 1) */
+  update(dt, c, grip, surface = 1, brakeFx = 1) {
+    const ACCEL = 7.2, BRAKE = 11, MAXFWD = 35, MAXREV = -6.5;
     const fx = Math.cos(this.heading), fy = Math.sin(this.heading);
     const rx = -fy, ry = fx;
     let vf = this.vx * fx + this.vy * fy;
     let vl = this.vx * rx + this.vy * ry;
 
-    if (c.throttle > 0) vf += (vf < -0.2 ? BRAKE : ACCEL * surface) * c.throttle * dt;
-    else if (c.throttle < 0) vf += (vf > 0.2 ? BRAKE : ACCEL * 0.55) * c.throttle * dt;
+    if (c.throttle > 0) {
+      // engine power tapers as speed climbs — 0-30 is easy, 50-65 is a commitment
+      const taper = Math.max(0.22, 1 - (Math.max(0, vf) / MAXFWD) * 0.85);
+      vf += (vf < -0.2 ? BRAKE * brakeFx : ACCEL * taper * surface) * c.throttle * dt;
+    } else if (c.throttle < 0) {
+      vf += (vf > 0.2 ? BRAKE * brakeFx : ACCEL * 0.5) * c.throttle * dt;
+    }
+    this.braking = c.throttle < 0 && vf > 0.2;
+    this.reversing = vf < -0.2;
     const drag = (Math.abs(vf) * 0.10 + 0.9 + (1 - surface) * 4) * dt;
     vf = Math.abs(vf) <= drag ? 0 : vf - Math.sign(vf) * drag;
     vf = U.clamp(vf, MAXREV, MAXFWD);

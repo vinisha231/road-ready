@@ -97,7 +97,11 @@ const Sim = {
     const c = Input.controls();
     const onRoad = World.onRoad(car.x, car.y, inst);
     const prevSpeed = car.forwardSpeed;
-    car.update(dt, c, Weather.grip(), onRoad ? 1 : 0.55);
+    car.update(dt, c, Weather.grip(), onRoad ? 1 : 0.55, Weather.brakeFactor());
+    // grass is not a smooth ride
+    if (!onRoad && car.speed > 3) {
+      car.heading += (Math.random() - 0.5) * 0.05 * Math.min(car.speed, 12) * dt;
+    }
 
     // slam-braking costs points — unless something jumped out or the scenario demanded it
     const decel = (prevSpeed - car.forwardSpeed) / dt;
