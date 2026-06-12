@@ -57,4 +57,25 @@ class Session {
     if (info.tooSlow) this.slowT += dt;
     if (info.mph > this.maxMph) this.maxMph = info.mph;
   }
+
+  finalize() {
+    const pct = (x) => this.movingT > 1 ? Math.round(100 * x / this.movingT) : 0;
+    this.speedPct = pct(this.speedingT);
+    this.tailPct = pct(this.tailT);
+    let score = 100 + this.bonuses - this.deductions;
+    score -= Math.min(25, this.speedingT * 1.2 + this.schoolSpeedingT * 2.4);
+    score -= Math.min(20, this.tailT * 1.0);
+    score -= Math.min(15, this.offroadT * 1.5);
+    score -= Math.min(10, this.slowT * 0.8);
+    score = U.clamp(Math.round(score), 0, 100);
+    if (this.fatal) score = Math.min(score, 8);
+    return { score, grade: Scoring.grade(score), lines: Scoring.feedback(this, score), events: this.events };
+  }
 }
+
+Scoring.grade = function (s) {
+  const bands = [[97, 'A+'], [93, 'A'], [90, 'A-'], [87, 'B+'], [83, 'B'], [80, 'B-'],
+    [77, 'C+'], [73, 'C'], [70, 'C-'], [67, 'D+'], [63, 'D'], [60, 'D-']];
+  for (const [min, g] of bands) if (s >= min) return g;
+  return 'F';
+};
