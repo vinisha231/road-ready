@@ -217,6 +217,9 @@ const Sim = {
   finish() {
     if (this.finished) return;
     this.finished = true;
+    Phone.enabled = false;
+    UI.phoneHide();
+    UI.peekEnd();
     const res = this.session.finalize();
     this.lastRes = res;
     Store.recordRun(this.scenario.id, res, this.session);
@@ -235,6 +238,7 @@ const Sim = {
     UI.setObjective('');
     UI.setZone(null);
     UI.attempts(null);
+    UI.phoneHide();
     UI.replayCaption(this.clip, true);
   },
 
