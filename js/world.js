@@ -102,6 +102,8 @@ const World = {
       switch (o.kind) {
         case 'car': {
           const L = o.l || 4.4, W = o.w || 1.85;
+          ctx.fillStyle = 'rgba(0,0,0,0.2)';
+          ctx.beginPath(); ctx.roundRect(-L / 2 + 0.16, -W / 2 + 0.2, L + 0.18, W + 0.18, 0.6); ctx.fill();
           ctx.fillStyle = '#101216';
           for (const sx of [-1, 1]) for (const sy of [-1, 1]) ctx.fillRect(sx * L * 0.32 - 0.4, sy * W * 0.5 - 0.14, 0.8, 0.28);
           ctx.fillStyle = o.color || '#7d8aa0';
@@ -112,6 +114,8 @@ const World = {
         }
         case 'truck': {
           const L = o.l || 7.5, W = o.w || 2.5;
+          ctx.fillStyle = 'rgba(0,0,0,0.2)';
+          ctx.fillRect(-L / 2 + 0.2, -W / 2 + 0.24, L + 0.2, W + 0.2);
           ctx.fillStyle = o.color || '#9aa3ad';
           ctx.fillRect(-L / 2, -W / 2, L * 0.72, W);
           ctx.fillStyle = '#5c87b8';

@@ -86,6 +86,9 @@ class Car {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.heading);
+    // soft drop shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.roundRect(-L / 2 + 0.16, -W / 2 + 0.2, L + 0.18, W + 0.18, 0.6); ctx.fill();
     // tires
     ctx.fillStyle = '#15171c';
     for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
@@ -101,9 +104,20 @@ class Car {
     ctx.fillStyle = '#ffefb0';
     ctx.fillRect(L / 2 - 0.30, -W / 2 + 0.16, 0.24, 0.44);
     ctx.fillRect(L / 2 - 0.30, W / 2 - 0.60, 0.24, 0.44);
-    ctx.fillStyle = '#e8473f';
+    // taillights: glow under braking, white when backing up
+    if (this.braking) {
+      ctx.fillStyle = 'rgba(255,45,45,0.35)';
+      ctx.beginPath(); ctx.arc(-L / 2, -W / 2 + 0.36, 0.65, 0, U.TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(-L / 2, W / 2 - 0.36, 0.65, 0, U.TAU); ctx.fill();
+    }
+    ctx.fillStyle = this.braking ? '#ff2d2d' : '#e8473f';
     ctx.fillRect(-L / 2 + 0.06, -W / 2 + 0.16, 0.2, 0.4);
     ctx.fillRect(-L / 2 + 0.06, W / 2 - 0.56, 0.2, 0.4);
+    if (this.reversing) {
+      ctx.fillStyle = '#f2f4f8';
+      ctx.fillRect(-L / 2 + 0.06, -0.42, 0.18, 0.32);
+      ctx.fillRect(-L / 2 + 0.06, 0.1, 0.18, 0.32);
+    }
     ctx.restore();
   }
 }
