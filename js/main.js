@@ -89,8 +89,11 @@ const Sim = {
     const prevSpeed = car.forwardSpeed;
     car.update(dt, c, Weather.grip(), onRoad ? 1 : 0.55);
 
+    // slam-braking costs points — unless something jumped out or the scenario demanded it
     const decel = (prevSpeed - car.forwardSpeed) / dt;
-    if (decel > 9.5 && prevSpeed > 8 && Hazards.actors.length === 0) this.session.add('harsh-brake');
+    if (decel > 9.5 && prevSpeed > 8 && Hazards.actors.length === 0 && inst.phase !== 'stop') {
+      this.session.add('harsh-brake');
+    }
 
     this.updateCollisions(dt);
     this.updateZonesAndScore(dt, onRoad);
@@ -251,8 +254,12 @@ const Sim = {
   updateReplay(dt) {
     Replay.step(dt);
     const g = Replay.carState();
+    // derive ghost velocity so the camera leads and the speedo reads replay speed
+    this.car.vx = (g.x - this.car.x) / Math.max(dt, 0.001);
+    this.car.vy = (g.y - this.car.y) / Math.max(dt, 0.001);
     this.car.x = g.x; this.car.y = g.y; this.car.heading = g.h;
     Camera.follow(this.car, dt);
+    UI.updateHUD(this);
     if (Input.justPressed('Escape')) this.endReplay();
   },
 
