@@ -30,6 +30,7 @@ class Session {
     this.offroadT = 0; this.movingT = 0;
     this.tailT = 0; this.slowT = 0;
     this.maxMph = 0;
+    this.distM = 0;
     this.fatal = false;
     this.extraLines = []; // scenarios can inject custom feedback
     this._cooldown = {};
@@ -51,6 +52,7 @@ class Session {
   /* called every frame with what the car is doing right now */
   tick(dt, info) {
     this.t += dt;
+    this.distM += (info.speedMs || 0) * dt;
     if (info.moving) this.movingT += dt;
     if (info.mphOver > 4) { this.speedingT += dt; if (info.inSchool) this.schoolSpeedingT += dt; }
     if (info.offroad && info.moving) this.offroadT += dt;

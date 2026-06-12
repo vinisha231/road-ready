@@ -197,6 +197,7 @@ const Sim = {
     const mph = car.speed * U.MPH;
     this.session.tick(dt, {
       moving: car.speed > 1,
+      speedMs: car.speed,
       mph: Math.round(mph),
       mphOver: mph - limit,
       inSchool,

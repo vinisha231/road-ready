@@ -24,6 +24,7 @@ const Store = {
     p.last = res.score;
     if (p.best === null || res.score > p.best) p.best = res.score;
     p.time += Math.round(session.t);
+    p.dist = (p.dist || 0) + Math.round(session.distM || 0);
     for (const ev of session.events) p.events[ev.type] = (p.events[ev.type] || 0) + 1;
     if (res.score >= 70 && this.load().assignments[id]) delete this.load().assignments[id];
     this.save();

@@ -27,11 +27,11 @@ const Parent = {
 
   show() {
     const data = Store.load();
-    let rows = '', totalTime = 0, totalRuns = 0;
+    let rows = '', totalTime = 0, totalRuns = 0, totalDist = 0;
     for (const s of Scenarios.list) {
       const p = data.progress[s.id];
       const assigned = !!data.assignments[s.id];
-      if (p) { totalTime += p.time || 0; totalRuns += p.attempts; }
+      if (p) { totalTime += p.time || 0; totalRuns += p.attempts; totalDist += p.dist || 0; }
       rows += `<tr>
         <td>${s.emoji} ${s.title}</td>
         <td>${p ? p.attempts : 0}</td>
@@ -58,7 +58,7 @@ const Parent = {
     UI.el('parent').innerHTML = `
       <div class="inner">
         <h2>👁️ Parent / Instructor view</h2>
-        <p class="muted">Local progress for the driver on this computer. ${totalRuns} total runs · ${Math.round(totalTime / 60)} min behind the (virtual) wheel.</p>
+        <p class="muted">Local progress for the driver on this computer. ${totalRuns} total runs · ${Math.round(totalTime / 60)} min behind the (virtual) wheel · ${(totalDist / 1609).toFixed(1)} virtual miles.</p>
         <div class="parent-grid">
           <div>
             <h4>Progress</h4>
