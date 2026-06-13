@@ -100,7 +100,9 @@ const Sim = {
 
     if (Input.justPressed('KeyQ')) car.setSignal('L');
     if (Input.justPressed('KeyE')) car.setSignal('R');
+    if (Input.justPressed('KeyC') && this._3d) R3D.chase = !R3D.chase;
 
+    Input.update(dt);
     const c = Input.controls();
     const onRoad = World.onRoad(car.x, car.y, inst);
     const prevSpeed = car.forwardSpeed;
