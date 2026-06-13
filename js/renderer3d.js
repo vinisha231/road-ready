@@ -476,7 +476,18 @@ Object.assign(R3D, {
 
     // rain particles live in a box that follows the camera
     this._rain = null;
-    if (Weather.rain > 0) {
+    this.ensureRain();
+
+    this._tcMap = new Map();
+    this._acMap = new Map();
+    this.chase = false;
+    this.applyAtmosphere();
+  },
+
+  /* rain can start mid-run (emergency round 3) — create particles on demand */
+  ensureRain() {
+    if (this._rain || Weather.rain <= 0 || !this.scene) return;
+    {
       const n = Math.round(900 * Weather.rain);
       const pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
@@ -491,11 +502,6 @@ Object.assign(R3D, {
       }));
       this.scene.add(this._rain);
     }
-
-    this._tcMap = new Map();
-    this._acMap = new Map();
-    this.chase = false;
-    this.applyAtmosphere();
   },
 
   addObstacle(o) {
@@ -569,6 +575,7 @@ Object.assign(R3D, {
     }
 
     // rain box rides along with the camera
+    this.ensureRain();
     if (this._rain) {
       const p = this._rain.geometry.attributes.position;
       for (let i = 0; i < p.count; i++) {
