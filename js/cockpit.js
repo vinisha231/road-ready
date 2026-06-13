@@ -65,6 +65,8 @@ const Cockpit = {
 
   sync(sim) {
     if (!this.built) return;
+    // chase cam keeps the gauge cluster but drops the wheel and dash slab
+    document.getElementById('cockpit').classList.toggle('chase', R3D.chase);
     const car = sim.car;
     const mph = Math.round(car.speed * U.MPH);
     document.getElementById('wheel').style.transform = `rotate(${(car.steer / 0.55) * 450}deg)`;

@@ -322,6 +322,8 @@ button.mini.on { background: rgba(255,210,74,0.16); border-color: var(--amber); 
 .pbrake { background: linear-gradient(to top, #a32626, #ff5d5d); }
 /* the big 2D speedo is redundant when the gauge cluster is up */
 #app.mode3d #speedo { display: none; }
+#cockpit.chase #wheelWrap { display: none; }
+#cockpit.chase #dash { background: none; border-top: 0; }
 #app.mode3d #toasts { top: 170px; }
 
 /* ---- menu view toggle ---- */
