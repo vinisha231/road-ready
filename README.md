@@ -4,8 +4,23 @@
 
 Play it: **https://vinisha231.github.io/road-ready/**
 
-RoadReady is a free, browser-based, top-down driving sim aimed at new drivers.
-No installs, no accounts, no build step — just vanilla HTML/CSS/JS and a canvas.
+RoadReady is a free, browser-based driving sim aimed at new drivers.
+No installs, no accounts, no build step — vanilla HTML/CSS/JS, a 2D canvas,
+and three.js for the 3D view.
+
+## 🪟 Behind the wheel (3D)
+
+The default view puts you **in the driver's seat**: a 3D world with perspective
+roads, a dashboard with a steering wheel that actually turns as you steer, an
+analog speedometer needle, gas/brake pedal indicators, a gear readout, and
+blinker arrows. Headlights carve through the dark, streetlights pool on the
+asphalt, rain falls around the car, and traffic carries its own lights.
+
+- **C** toggles a chase camera if you want to see your car.
+- **Gamepads and racing wheels** work via the Gamepad API (left stick / wheel
+  steers, triggers / pedals for gas and brake). Mappings vary by hardware.
+- Prefer the bird's-eye arcade view? Flip to **🚁 Top-down** on the main menu.
+  Worst-moment replays always play out on the top-down "chopper cam."
 
 ## What's in it
 
@@ -54,6 +69,7 @@ No installs, no accounts, no build step — just vanilla HTML/CSS/JS and a canva
 | ← → / A D | Steer |
 | Space | Handbrake |
 | Q / E | Left / right turn signal (they're scored!) |
+| C | Cockpit ⇄ chase camera (3D mode) |
 | P | Peek at your phone (don't) |
 | R | Reset parking attempt |
 | M | Mute |
@@ -92,11 +108,16 @@ js/
   unlocks.js            70+ progression chain
   parent.js             instructor dashboard & homework assignment
   ui.js / main.js       DOM screens, HUD, state machine, game loop
-  audio.js              zero-asset WebAudio blips
+  renderer3d.js         three.js first-person world built from the same data
+  cockpit.js            steering wheel, gauge, pedals, gear, blinker overlay
+  audio.js              zero-asset WebAudio engine hum and blips
   scenarios/            one file per scenario, registered in base.js
+vendor/three.module.min.js   three.js r160, vendored — no CDN dependency
 ```
 
-No frameworks, no build, no dependencies. View source is the documentation.
+The 3D mode renders the exact same scenario data as the 2D view — the ground
+plane is literally baked by the 2D road-painting code, so both views always
+agree about the world. One build step? Still zero.
 
 ## Disclaimer
 
