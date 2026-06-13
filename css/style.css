@@ -280,6 +280,59 @@ button.mini.on { background: rgba(255,210,74,0.16); border-color: var(--amber); 
 .weak .sug { color: var(--muted); font-size: 0.82rem; }
 .small { font-size: 0.8rem; margin-top: 10px; }
 
+/* ---- cockpit (3D mode) ---- */
+#cockpit { position: absolute; inset: 0; pointer-events: none; z-index: 9; }
+#dash {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 168px;
+  background: linear-gradient(to top, #14161c 58%, rgba(20,22,28,0.92) 80%, rgba(20,22,28,0) 100%);
+  border-top: 2px solid #2a2e38;
+}
+#wheelWrap {
+  position: absolute; left: 50%; bottom: -150px; transform: translateX(-50%);
+  width: 330px; height: 330px;
+}
+#wheel { width: 100%; height: 100%; transition: transform 0.06s linear; filter: drop-shadow(0 -6px 18px rgba(0,0,0,0.55)); }
+#cluster {
+  position: absolute; left: max(18px, calc(50% - 420px)); bottom: 12px;
+  width: 200px; text-align: center;
+}
+#gauge { width: 180px; }
+#indicators { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: -6px; }
+#gear {
+  font-weight: 900; font-size: 1.2rem; color: var(--green);
+  background: #11141a; border: 1.5px solid #2a3343; border-radius: 6px; padding: 2px 10px;
+}
+#gear.rev { color: var(--amber); }
+.blink-ind { color: #3a4456; font-size: 1.15rem; }
+.blink-ind.on { color: #5fe07a; animation: blinkind 0.75s step-start infinite; }
+@keyframes blinkind { 50% { opacity: 0.15; } }
+#pedals {
+  position: absolute; right: max(18px, calc(50% - 420px)); bottom: 16px;
+  display: flex; gap: 14px;
+}
+.pedal { text-align: center; }
+.pedal span { display: block; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--muted); margin-top: 5px; }
+.pwell {
+  width: 34px; height: 92px; border-radius: 8px;
+  background: #11141a; border: 1.5px solid #2a3343;
+  display: flex; align-items: flex-end; overflow: hidden;
+}
+.pfill { width: 100%; height: 0%; transition: height 0.05s linear; }
+.pgas { background: linear-gradient(to top, #2f8f46, #5fe07a); }
+.pbrake { background: linear-gradient(to top, #a32626, #ff5d5d); }
+/* the big 2D speedo is redundant when the gauge cluster is up */
+#app.mode3d #speedo { display: none; }
+#app.mode3d #toasts { top: 170px; }
+
+/* ---- menu view toggle ---- */
+.viewtoggle { display: flex; gap: 0; border: 1.5px solid #3a4456; border-radius: 10px; overflow: hidden; }
+.vbtn {
+  background: transparent; color: var(--muted); border: 0; border-radius: 0;
+  font-size: 0.88rem; padding: 10px 14px; font-weight: 600;
+}
+.vbtn.on { background: var(--amber); color: #1a1505; }
+.vbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* letterbox bars for cinema feel */
 #replayCap::before {
   content: ''; position: fixed; left: 0; right: 0; top: 0; height: 56px;
