@@ -106,11 +106,12 @@ const R3D = {
     let sky = { r: mix(day.r, nite.r, n), g: mix(day.g, nite.g, n), b: mix(day.b, nite.b, n) };
     const gray = (sky.r + sky.g + sky.b) / 3;
     sky = { r: mix(sky.r, gray, r * 0.7), g: mix(sky.g, gray, r * 0.7), b: mix(sky.b, gray * 1.05, r * 0.7) };
+    // r160 uses physical light units — intensities run ~3x the legacy values
     return {
       sky,
       fogFar: mix(mix(520, 150, n), mix(220, 90, n), r),
-      hemi: mix(1.05, 0.14, n) * mix(1, 0.75, r),
-      sun: mix(1.7, 0.02, n) * mix(1, 0.4, r),
+      hemi: mix(2.9, 0.42, n) * mix(1, 0.75, r),
+      sun: mix(3.2, 0.05, n) * mix(1, 0.4, r),
     };
   },
 
