@@ -297,7 +297,7 @@ Object.assign(R3D, {
     grp.add(head);
     if (night && this._lampLights < 10) {
       this._lampLights++;
-      const pl = new THREE.PointLight(0xffd9a0, 60, 30, 1.8);
+      const pl = new THREE.PointLight(0xffd9a0, 320, 32, 1.8);
       pl.position.set(1.5, 4.9, 0);
       grp.add(pl);
     }
@@ -438,8 +438,11 @@ Object.assign(R3D, {
       if (m) this.scene.add(m);
     }
 
-    // player car: full body for chase cam, hood sliver for the cockpit view
-    this.player = this.makeVehicle('#d8434e');
+    // player car: body shows on the chase cam; the lights stay on either way
+    // (lights must NOT be children of the hidden body — hidden groups stop illuminating)
+    this.player = new THREE.Group();
+    this.playerBody = this.makeVehicle('#d8434e');
+    this.player.add(this.playerBody);
     this.scene.add(this.player);
     this._headlights = [];
     for (const sz of [-1, 1]) {
@@ -543,12 +546,12 @@ Object.assign(R3D, {
     // player
     this.player.position.set(car.x, 0, car.y);
     this.player.rotation.y = -car.heading;
-    this.player.userData.tailMat.emissiveIntensity = car.braking ? 2.4 : 0.5;
-    this.player.userData.tailMat.emissive.setHex(car.braking ? 0xff2010 : 0x550000);
+    this.playerBody.userData.tailMat.emissiveIntensity = car.braking ? 2.4 : 0.5;
+    this.playerBody.userData.tailMat.emissive.setHex(car.braking ? 0xff2010 : 0x550000);
     const lightOn = Weather.night > 0.02;
-    for (const sp of this._headlights) sp.intensity = lightOn ? 260 : 0;
+    for (const sp of this._headlights) sp.intensity = lightOn ? 3000 : 0;
     // hide the body in cockpit view so it doesn't block the camera
-    this.player.visible = this.chase;
+    this.playerBody.visible = this.chase;
 
     // beacon follows the active objective
     let bx = null, by = null, br = 4;
