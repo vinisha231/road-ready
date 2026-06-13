@@ -389,3 +389,228 @@ Object.assign(R3D, {
     return g;
   },
 });
+
+/* ---------- scene assembly & per-frame sync ---------- */
+Object.assign(R3D, {
+  build(inst) {
+    if (!this.ok) return;
+    if (this.scene) {
+      this.scene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose();
+        if (o.material && o.material.map) o.material.map.dispose();
+      });
+    }
+    this._mats = {};
+    this._lampLights = 0;
+    this.inst = inst;
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x87b5d9);
+    this.scene.fog = new THREE.Fog(0x87b5d9, 60, 500);
+    this._hemi = new THREE.HemisphereLight(0xcfe5ff, 0x46543e, 1.0);
+    this.scene.add(this._hemi);
+    this._sun = new THREE.DirectionalLight(0xfff2d9, 1.6);
+    this._sun.position.set(120, 180, 60);
+    this.scene.add(this._sun);
+    this._atmo = this.atmosphereTargets();
+
+    const b = this.bounds(inst);
+    this._b = b;
+    this.scene.add(this.bakeGround(inst, b));
+    const apron = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), this.mat(0x44603c));
+    apron.rotation.x = -Math.PI / 2;
+    apron.position.set((b.minX + b.maxX) / 2, -0.08, (b.minY + b.maxY) / 2);
+    this.scene.add(apron);
+
+    // static & semi-static props
+    this._obMap = new Map();
+    for (const o of inst.obstacles || []) this.addObstacle(o);
+    for (const s of inst.scenery || []) {
+      let m = null;
+      if (s.kind === 'building') m = this.makeBuilding(s);
+      else if (s.kind === 'bush') {
+        m = new THREE.Mesh(new THREE.SphereGeometry(s.r || 0.9, 8, 6), this.mat(0x4e6b40));
+        m.position.set(s.x, (s.r || 0.9) * 0.7, s.y);
+      } else {
+        m = this.makeTree(s);
+        m.position.set(s.x, 0, s.y);
+      }
+      if (m) this.scene.add(m);
+    }
+
+    // player car: full body for chase cam, hood sliver for the cockpit view
+    this.player = this.makeVehicle('#d8434e');
+    this.scene.add(this.player);
+    this._headlights = [];
+    for (const sz of [-1, 1]) {
+      const sp = new THREE.SpotLight(0xfff1c4, 0, 60, 0.45, 0.45, 1.2);
+      sp.position.set(2.15, 0.75, sz * 0.62);
+      const tgt = new THREE.Object3D();
+      tgt.position.set(16, 0, sz * 1.2);
+      this.player.add(tgt);
+      sp.target = tgt;
+      this.player.add(sp);
+      this._headlights.push(sp);
+    }
+
+    // objective beacon: ground halo + light pillar
+    this._beacon = new THREE.Group();
+    const halo = new THREE.Mesh(
+      new THREE.TorusGeometry(4, 0.18, 8, 36),
+      new THREE.MeshBasicMaterial({ color: 0x5fe07a, transparent: true, opacity: 0.85 })
+    );
+    halo.rotation.x = Math.PI / 2;
+    halo.position.y = 0.12;
+    this._beacon.add(halo);
+    this._haloMesh = halo;
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.9, 26, 10, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x5fe07a, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false })
+    );
+    pillar.position.y = 13;
+    this._beacon.add(pillar);
+    this.scene.add(this._beacon);
+
+    // rain particles live in a box that follows the camera
+    this._rain = null;
+    if (Weather.rain > 0) {
+      const n = Math.round(900 * Weather.rain);
+      const pos = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        pos[i * 3] = U.rand(-25, 25);
+        pos[i * 3 + 1] = U.rand(0, 18);
+        pos[i * 3 + 2] = U.rand(-25, 25);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      this._rain = new THREE.Points(geo, new THREE.PointsMaterial({
+        color: 0x9db8d9, size: 0.06, transparent: true, opacity: 0.65, sizeAttenuation: true,
+      }));
+      this.scene.add(this._rain);
+    }
+
+    this._tcMap = new Map();
+    this._acMap = new Map();
+    this.chase = false;
+    this.applyAtmosphere();
+  },
+
+  addObstacle(o) {
+    const m = this.makeProp(o);
+    if (!m) return;
+    m.position.set(o.x, 0, o.y);
+    m.rotation.y = -(o.a || 0);
+    this.scene.add(m);
+    this._obMap.set(o, m);
+  },
+
+  /* keep a Map of sim object -> mesh in sync with a live array */
+  syncPool(list, map, maker) {
+    const seen = new Set(list);
+    for (const item of list) {
+      let m = map.get(item);
+      if (!m) {
+        m = maker(item);
+        this.scene.add(m);
+        map.set(item, m);
+      }
+      m.position.set(item.x, 0, item.y);
+      m.rotation.y = -(item.heading !== undefined ? item.heading : Math.atan2(item.dy || 0, item.dx || 1));
+    }
+    for (const [item, m] of map) {
+      if (!seen.has(item) || item.dead || item.gone) {
+        this.scene.remove(m);
+        map.delete(item);
+      }
+    }
+  },
+
+  sync(sim, dt) {
+    const inst = sim.inst, car = sim.car;
+    // obstacles can appear (emergency rounds), vanish, or get flattened
+    for (const o of inst.obstacles || []) if (!this._obMap.has(o)) this.addObstacle(o);
+    for (const [o, m] of this._obMap) {
+      if (!(inst.obstacles || []).includes(o)) { this.scene.remove(m); this._obMap.delete(o); continue; }
+      if (o.kind === 'cone') m.rotation.z = o.flat ? Math.PI / 2.3 : 0;
+    }
+    this.syncPool(inst.traffic || [], this._tcMap, (tc) => this.makeVehicle(tc.color, false));
+    for (const [tc, m] of this._tcMap) {
+      m.userData.tailMat.emissiveIntensity = tc.braking ? 2.2 : 0.5;
+      m.userData.tailMat.emissive.setHex(tc.braking ? 0xff2010 : 0x550000);
+    }
+    this.syncPool(Hazards.actors, this._acMap, (a) => this.makeActor(a));
+
+    // player
+    this.player.position.set(car.x, 0, car.y);
+    this.player.rotation.y = -car.heading;
+    this.player.userData.tailMat.emissiveIntensity = car.braking ? 2.4 : 0.5;
+    this.player.userData.tailMat.emissive.setHex(car.braking ? 0xff2010 : 0x550000);
+    const lightOn = Weather.night > 0.02;
+    for (const sp of this._headlights) sp.intensity = lightOn ? 260 : 0;
+    // hide the body in cockpit view so it doesn't block the camera
+    this.player.visible = this.chase;
+
+    // beacon follows the active objective
+    let bx = null, by = null, br = 4;
+    if (inst.checkpoints && inst.nextCp < inst.checkpoints.length) {
+      const cp = inst.checkpoints[inst.nextCp];
+      bx = cp.x; by = cp.y; br = cp.r || 4;
+    } else if (inst.goal && inst.goal.type === 'park' && !sim.parked) {
+      bx = inst.goal.bay.x; by = inst.goal.bay.y; br = 3;
+    }
+    this._beacon.visible = bx !== null;
+    if (bx !== null) {
+      this._beacon.position.set(bx, 0, by);
+      const pulse = 1 + Math.sin(sim.time * 4) * 0.07;
+      this._haloMesh.scale.setScalar((br / 4) * pulse);
+    }
+
+    // rain box rides along with the camera
+    if (this._rain) {
+      const p = this._rain.geometry.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        let y = p.getY(i) - dt * 22;
+        if (y < 0) y += 18;
+        p.setY(i, y);
+      }
+      p.needsUpdate = true;
+      this._rain.position.set(this.camera.position.x, 0, this.camera.position.z);
+    }
+
+    this.applyAtmosphere(dt);
+    this.updateCamera(sim, dt);
+  },
+
+  updateCamera(sim, dt) {
+    const car = sim.car;
+    const fx = Math.cos(car.heading), fz = Math.sin(car.heading);
+    const cam = this.camera;
+    if (this.chase) {
+      const tx = car.x - fx * 9.5, tz = car.y - fz * 9.5;
+      const k = Math.min(1, dt * 5);
+      this._cx = this._cx === undefined ? tx : this._cx + (tx - this._cx) * k;
+      this._cz = this._cz === undefined ? tz : this._cz + (tz - this._cz) * k;
+      cam.position.set(this._cx, 4.0, this._cz);
+      cam.lookAt(car.x + fx * 4, 1.0, car.y + fz * 4);
+      cam.fov = 60;
+    } else {
+      this._cx = this._cz = undefined;
+      // driver's eye, slightly right-of-center stays neutral in a sim
+      const shake = Math.min(1, car.speed / 30) * 0.025;
+      const ex = car.x + fx * 0.3 + (Math.random() - 0.5) * shake;
+      const ez = car.y + fz * 0.3 + (Math.random() - 0.5) * shake;
+      cam.position.set(ex, 1.18 + (Math.random() - 0.5) * shake, ez);
+      // look ahead, biased into the steering direction like real eyes do
+      const look = car.heading + car.steer * 1.6;
+      cam.lookAt(ex + Math.cos(look) * 12, 1.0, ez + Math.sin(look) * 12);
+      cam.rotation.z += -car.steer * 0.35 * Math.min(1, car.speed / 14);
+      cam.fov = 63 + Math.min(11, car.speed * 0.22);
+    }
+    cam.updateProjectionMatrix();
+  },
+
+  render(sim, dt) {
+    if (!this.ok || !this.scene) return;
+    this.sync(sim, dt);
+    this.renderer.render(this.scene, this.camera);
+  },
+});
