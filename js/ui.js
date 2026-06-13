@@ -10,7 +10,9 @@ const UI = {
   },
 
   buildMenu() {
+    if (typeof Cockpit !== 'undefined') Cockpit.show(false);
     const name = Store.setting('name') || '';
+    const view = R3D.ok ? (Store.setting('view') || '3d') : '2d';
     const assignments = Store.load().assignments;
     let cards = '';
     for (const s of Scenarios.list) {
@@ -39,6 +41,10 @@ const UI = {
         <p class="tagline">A driving simulator for teens. Crash here, not out there.</p>
         <div class="menu-bar">
           <label class="namefield">Driver name <input id="playerName" maxlength="12" value="${name}" placeholder="YOU"></label>
+          <div class="viewtoggle">
+            <button class="vbtn ${view === '3d' ? 'on' : ''}" data-v="3d" ${R3D.ok ? '' : 'disabled title="WebGL unavailable"'}>🚗 Behind the wheel</button>
+            <button class="vbtn ${view === '2d' ? 'on' : ''}" data-v="2d">🚁 Top-down</button>
+          </div>
           <button class="ghost" id="parentBtn">Parent / Instructor view</button>
         </div>
         <div class="cards">${cards}</div>
@@ -49,6 +55,13 @@ const UI = {
       Store.setting('name', e.target.value.replace(/[<>&"]/g, '').trim());
     });
     this.el('parentBtn').addEventListener('click', () => Parent.show());
+    for (const vb of this.el('menu').querySelectorAll('.vbtn')) {
+      vb.addEventListener('click', () => {
+        if (vb.disabled) return;
+        Store.setting('view', vb.dataset.v);
+        UI.buildMenu();
+      });
+    }
     for (const card of this.el('menu').querySelectorAll('.card:not(.locked)')) {
       card.addEventListener('click', () => Sim.brief(card.dataset.id));
     }

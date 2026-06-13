@@ -11,9 +11,27 @@ const Sim = {
   attempts: 1,
   finished: false,
 
+  use3d() {
+    return R3D.ok && (Store.setting('view') || '3d') === '3d';
+  },
+
+  swapCanvas(to3d) {
+    this._3d = to3d;
+    this.canvas.classList.toggle('hidden', to3d);
+    document.getElementById('game3d').classList.toggle('hidden', !to3d);
+    document.getElementById('app').classList.toggle('mode3d', to3d);
+    Cockpit.show(to3d);
+  },
+
   init() {
     this.canvas = document.getElementById('game');
     this.ctx = this.canvas.getContext('2d');
+    this._3d = false;
+    const init3d = () => {
+      if (R3D.init(document.getElementById('game3d')) && this.state === 'menu') UI.buildMenu();
+    };
+    if (window.THREE) init3d();
+    else window.addEventListener('three-ready', init3d);
     const resize = () => {
       this.canvas.width = window.innerWidth * (window.devicePixelRatio || 1);
       this.canvas.height = window.innerHeight * (window.devicePixelRatio || 1);
@@ -60,6 +78,8 @@ const Sim = {
     UI.setZone(null);
     UI.attempts(this.inst.allowReset ? this.attempts : null);
     UI.show(null);
+    this.swapCanvas(this.use3d());
+    if (this._3d) R3D.build(this.inst);
     this.state = 'play';
   },
 
@@ -77,9 +97,10 @@ const Sim = {
       if (Input.justPressed('Enter')) this.start(this.scenario.id);
       else if (Input.justPressed('Escape')) { this.state = 'menu'; UI.buildMenu(); }
     }
-    if (this.state === 'play' || this.state === 'replay' || this.state === 'pause') {
+    if ((this.state === 'play' || this.state === 'replay' || this.state === 'pause') && !this._3d) {
       Weather.updateRain(dt, this.canvas.width, this.canvas.height);
     }
+    this._dt = dt;
     this.draw();
     Input.endFrame();
     requestAnimationFrame((t) => this.loop(t));
@@ -251,6 +272,7 @@ const Sim = {
     Phone.enabled = false;
     UI.phoneHide();
     UI.peekEnd();
+    Cockpit.show(false);
     const res = this.session.finalize();
     this.lastRes = res;
     Store.recordRun(this.scenario.id, res, this.session);
@@ -264,6 +286,8 @@ const Sim = {
     if (!this.clip) return;
     Replay.start(this.clip);
     this.car.vx = this.car.vy = 0;
+    this.swapCanvas(false); // replays play out on the chopper cam
+    Camera.snap(this.car.x, this.car.y);
     this.state = 'replay';
     UI.show(null);
     UI.setObjective('');
@@ -292,6 +316,11 @@ const Sim = {
   },
 
   draw() {
+    if (this._3d && this.inst && (this.state === 'play' || this.state === 'pause')) {
+      R3D.render(this, this._dt || 0.016);
+      Cockpit.sync(this);
+      return;
+    }
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = Weather.groundColor();

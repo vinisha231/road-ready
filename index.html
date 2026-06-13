@@ -11,6 +11,7 @@
 <body>
 <div id="app">
   <canvas id="game"></canvas>
+  <canvas id="game3d" class="hidden"></canvas>
 
   <div id="hud" class="hidden">
     <div id="objective"></div>
@@ -31,6 +32,11 @@
   <div id="pause" class="screen hidden"></div>
 </div>
 
+<script type="module">
+  import * as THREE from './vendor/three.module.min.js';
+  window.THREE = THREE;
+  window.dispatchEvent(new Event('three-ready'));
+</script>
 <script src="js/util.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/input.js"></script>
@@ -48,6 +54,8 @@
 <script src="js/leaderboard.js"></script>
 <script src="js/unlocks.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/renderer3d.js"></script>
+<script src="js/cockpit.js"></script>
 <script src="js/parent.js"></script>
 <script src="js/scenarios/base.js"></script>
 <script src="js/scenarios/parking-lot.js"></script>
