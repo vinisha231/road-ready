@@ -59,8 +59,9 @@ const UI = {
           </div>
           <button class="ghost" id="parentBtn">Parent / Instructor view</button>
         </div>
-        <div class="garage-head">🏎️ Pick your car <span class="muted small">— each drives differently</span></div>
+        <div class="section-label">🏎️ Pick your car — each drives differently</div>
         <div class="garage">${garage}</div>
+        <div class="section-label">📍 Choose a scenario</div>
         <div class="cards">${cards}</div>
         <p class="foot">↑↓←→ or WASD to drive · Space handbrake · Q/E blinkers · P to (regrettably) check your phone · R resets a parking attempt · M mutes · Esc pauses<br>
         Not a substitute for actual driver's ed. But significantly cheaper.</p>
