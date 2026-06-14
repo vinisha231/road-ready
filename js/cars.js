@@ -26,9 +26,9 @@ const Cars = {
       model: { file: 'vendor/models/ferrari.glb', len: 4.6, yaw: Math.PI / 2, lift: 0, paint: '#15171c' },
     },
     {
-      id: 'hyper', name: 'Hyper Concept', badge: '🟢', real: true,
+      id: 'hyper', name: 'Hyper Concept', badge: '⚪', real: true,
       blurb: 'Low, wide, mid-engine concept exotic. Launches like a scolding.',
-      color: '#28c24a', accent: '#06200f',
+      color: '#b3bccb', accent: '#1a2230',
       stats: { accel: 1.34, top: 1.26, grip: 1.12 },
       model: { file: 'vendor/models/carconcept.glb', len: 4.7, yaw: Math.PI / 2, lift: 0, paint: null },
     },
