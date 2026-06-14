@@ -441,7 +441,9 @@ Object.assign(R3D, {
     // player car: body shows on the chase cam; the lights stay on either way
     // (lights must NOT be children of the hidden body — hidden groups stop illuminating)
     this.player = new THREE.Group();
-    this.playerBody = this.makeVehicle('#d8434e');
+    this.playerBody = (typeof Cars !== 'undefined' && Cars.build3D)
+      ? Cars.build3D(Cars.selected().id)
+      : this.makeVehicle('#d8434e');
     this.player.add(this.playerBody);
     this.scene.add(this.player);
     this._headlights = [];
