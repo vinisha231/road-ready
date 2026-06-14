@@ -621,9 +621,77 @@ Object.assign(R3D, {
     cam.updateProjectionMatrix();
   },
 
+  /* ---- mirrors: extra rear-facing render passes scissored onto the canvas ----
+     Only in cockpit view. Each mirror is a small camera looking backward; the
+     player body is shown during these passes so you see your own rear quarter. */
+  ensureMirrors() {
+    if (this._mirrors) return;
+    const cam = () => { const c = new THREE.PerspectiveCamera(38, 3, 0.1, 400); return c; };
+    this._mirrors = {
+      rear: { cam: cam(), back: 1, side: 0, yaw: 0, fov: 42 },
+      left: { cam: cam(), back: 0.2, side: -1, yaw: 0.5, fov: 50 },
+      right: { cam: cam(), back: 0.2, side: 1, yaw: -0.5, fov: 50 },
+    };
+  },
+
+  /* CSS-pixel rectangles for each mirror, matched by the DOM frames in Cockpit */
+  mirrorRects() {
+    const W = window.innerWidth, H = window.innerHeight;
+    const rw = Math.min(360, W * 0.32), rh = rw * 0.26;
+    const sw = Math.min(150, W * 0.13), sh = sw * 0.7;
+    return {
+      rear: { x: (W - rw) / 2, y: 10, w: rw, h: rh },
+      left: { x: W * 0.045, y: H * 0.5, w: sw, h: sh },
+      right: { x: W * 0.955 - sw, y: H * 0.5, w: sw, h: sh },
+    };
+  },
+
+  renderMirrors(sim) {
+    this.ensureMirrors();
+    const car = sim.car;
+    const rects = this.mirrorRects();
+    const pr = this.renderer.getPixelRatio();
+    const Hpx = this.renderer.domElement.height;
+    const eyeY = 1.12;
+    this.playerBody.visible = true; // show our own car in the glass
+
+    this.renderer.setScissorTest(true);
+    for (const key of ['rear', 'left', 'right']) {
+      const m = this._mirrors[key], r = rects[key];
+      const fx = Math.cos(car.heading), fz = Math.sin(car.heading);
+      const rx = -fz, rz = fx; // right vector
+      // eye position offset toward that mirror
+      const ex = car.x - fx * 0.2 + rx * m.side * (car.wid * 0.5);
+      const ez = car.y - fz * 0.2 + rz * m.side * (car.wid * 0.5);
+      m.cam.position.set(ex, eyeY, ez);
+      const look = car.heading + Math.PI + m.yaw; // face backward
+      m.cam.up.set(0, 1, 0);
+      m.cam.lookAt(ex + Math.cos(look) * 10, eyeY - 0.5, ez + Math.sin(look) * 10);
+      m.cam.fov = m.fov;
+      m.cam.aspect = r.w / r.h;
+      m.cam.updateProjectionMatrix();
+
+      // convert CSS rect (origin top-left) to GL viewport (origin bottom-left)
+      const vx = r.x * pr, vy = Hpx - (r.y + r.h) * pr, vw = r.w * pr, vh = r.h * pr;
+      this.renderer.setViewport(vx, vy, vw, vh);
+      this.renderer.setScissor(vx, vy, vw, vh);
+      this.renderer.render(this.scene, m.cam);
+    }
+    this.renderer.setScissorTest(false);
+    const fullPx = this.renderer.domElement;
+    this.renderer.setViewport(0, 0, fullPx.width, fullPx.height);
+  },
+
   render(sim, dt) {
     if (!this.ok || !this.scene) return;
     this.sync(sim, dt);
+    // main pass
+    this.playerBody.visible = this.chase;
     this.renderer.render(this.scene, this.camera);
+    // mirror passes (cockpit only); restore body visibility after
+    if (!this.chase) {
+      this.renderMirrors(sim);
+      this.playerBody.visible = this.chase;
+    }
   },
 });

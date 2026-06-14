@@ -43,7 +43,10 @@ const Cockpit = {
           <div class="pedal"><div class="pwell"><div id="pBrake" class="pfill pbrake"></div></div><span>BRAKE</span></div>
           <div class="pedal"><div class="pwell"><div id="pGas" class="pfill pgas"></div></div><span>GAS</span></div>
         </div>
-      </div>`;
+      </div>
+      <div class="mirror" id="mRear"><span class="mlabel">REAR VIEW</span></div>
+      <div class="mirror side" id="mLeft"></div>
+      <div class="mirror side" id="mRight"></div>`;
     document.getElementById('app').appendChild(d);
     // gauge tick marks every 20 mph across the 240° sweep
     let ticks = '';
@@ -63,10 +66,25 @@ const Cockpit = {
     document.getElementById('cockpit').classList.toggle('hidden', !on);
   },
 
+  /* line up the chrome housings with the scissored mirror renders */
+  placeMirrors() {
+    if (!R3D.mirrorRects) return;
+    const rects = R3D.mirrorRects();
+    for (const key of ['rear', 'left', 'right']) {
+      const el = document.getElementById('m' + key[0].toUpperCase() + key.slice(1));
+      const r = rects[key];
+      el.style.left = r.x + 'px';
+      el.style.top = r.y + 'px';
+      el.style.width = r.w + 'px';
+      el.style.height = r.h + 'px';
+    }
+  },
+
   sync(sim) {
     if (!this.built) return;
     // chase cam keeps the gauge cluster but drops the wheel and dash slab
     document.getElementById('cockpit').classList.toggle('chase', R3D.chase);
+    this.placeMirrors();
     const car = sim.car;
     const mph = Math.round(car.speed * U.MPH);
     document.getElementById('wheel').style.transform = `rotate(${(car.steer / 0.55) * 450}deg)`;
