@@ -441,10 +441,9 @@ Object.assign(R3D, {
     // player car: body shows on the chase cam; the lights stay on either way
     // (lights must NOT be children of the hidden body — hidden groups stop illuminating)
     this.player = new THREE.Group();
-    this.playerBody = (typeof Cars !== 'undefined' && Cars.build3D)
-      ? Cars.build3D(Cars.selected().id)
-      : this.makeVehicle('#d8434e');
+    this.playerBody = new THREE.Group();
     this.player.add(this.playerBody);
+    this.buildPlayerCar(inst);
     this.scene.add(this.player);
     this._headlights = [];
     for (const sz of [-1, 1]) {
@@ -515,6 +514,71 @@ Object.assign(R3D, {
     this._obMap.set(o, m);
   },
 
+  /* fill playerBody with the selected car: a real GLB if it has one (loaded
+     lazily, with a procedural placeholder while it streams), else procedural */
+  buildPlayerCar(inst) {
+    const sel = Cars.selected();
+    while (this.playerBody.children.length) this.playerBody.remove(this.playerBody.children[0]);
+    if (sel.model && window.GLTFLoader) {
+      // placeholder so you're not staring at nothing during the download
+      const ph = Cars.build3D('sedan');
+      ph.userData.placeholder = true;
+      this.playerBody.add(ph);
+      const p = Cars.loadModel(sel);
+      if (p) p.then((scene) => {
+        if (this.inst !== inst || Cars.selected().id !== sel.id) return; // moved on
+        for (const c of [...this.playerBody.children]) this.playerBody.remove(c);
+        this.playerBody.add(this.processModel(scene, sel));
+      }).catch(() => { /* keep placeholder on failure */ });
+    } else {
+      this.playerBody.add(Cars.build3D(sel.id));
+    }
+  },
+
+  /* scale to target length, drop onto the ground, aim nose +X, recolor paint,
+     cast shadows. Clones geometry-shared scene + per-mesh materials so two cars
+     sharing one GLB stay independent. */
+  processModel(srcScene, car) {
+    const root = srcScene.clone(true);
+    const wrap = new THREE.Group();
+    wrap.add(root);
+    if (car.model.yaw) root.rotation.y = car.model.yaw;
+
+    // measure, scale to target length (longest horizontal axis), recenter, ground
+    let box = new THREE.Box3().setFromObject(root);
+    const size = new THREE.Vector3(); box.getSize(size);
+    const lengthAxis = Math.max(size.x, size.z) || 1;
+    const s = car.model.len / lengthAxis;
+    root.scale.setScalar(s);
+    box = new THREE.Box3().setFromObject(root);
+    const center = new THREE.Vector3(); box.getCenter(center);
+    root.position.x -= center.x;
+    root.position.z -= center.z;
+    root.position.y -= box.min.y;              // wheels on the ground
+    root.position.y += car.model.lift || 0;
+
+    let tailMat = null;
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = true;
+      o.receiveShadow = false;
+      if (Array.isArray(o.material)) o.material = o.material.map((m) => m.clone());
+      else if (o.material) o.material = o.material.clone();
+      const m = o.material;
+      const name = (o.name + ' ' + (m && m.name || '')).toLowerCase();
+      // recolor the painted body panels (precise tokens — avoid carpet/carbon)
+      if (car.model.paint && m && m.color && /body|paint|carrosserie|exterior|coque/.test(name)) {
+        m.color.set(car.model.paint);
+        if ('metalness' in m) { m.metalness = 0.85; m.roughness = 0.3; }
+        if ('clearcoat' in m) { m.clearcoat = 1; m.clearcoatRoughness = 0.1; }
+      }
+      if (/taillight/.test(name)) tailMat = m;
+    });
+    wrap.userData.tailMat = tailMat;
+    this.playerBody.userData.tailMat = tailMat;
+    return wrap;
+  },
+
   /* keep a Map of sim object -> mesh in sync with a live array */
   syncPool(list, map, maker) {
     const seen = new Set(list);
@@ -554,8 +618,11 @@ Object.assign(R3D, {
     // player
     this.player.position.set(car.x, 0, car.y);
     this.player.rotation.y = -car.heading;
-    this.playerBody.userData.tailMat.emissiveIntensity = car.braking ? 2.4 : 0.5;
-    this.playerBody.userData.tailMat.emissive.setHex(car.braking ? 0xff2010 : 0x550000);
+    const ptm = this.playerBody.userData.tailMat;
+    if (ptm) {
+      ptm.emissiveIntensity = car.braking ? 2.4 : 0.5;
+      ptm.emissive.setHex(car.braking ? 0xff2010 : 0x550000);
+    }
     const lightOn = Weather.night > 0.02;
     for (const sp of this._headlights) sp.intensity = lightOn ? 3000 : 0;
     // hide the body in cockpit view so it doesn't block the camera

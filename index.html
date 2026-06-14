@@ -32,9 +32,20 @@
   <div id="pause" class="screen hidden"></div>
 </div>
 
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
 <script type="module">
-  import * as THREE from './vendor/three.module.min.js';
+  import * as THREE from 'three';
+  import { GLTFLoader } from './vendor/GLTFLoader.js';
+  import { DRACOLoader } from './vendor/DRACOLoader.js';
+  import { RoomEnvironment } from './vendor/RoomEnvironment.js';
+  const draco = new DRACOLoader();
+  draco.setDecoderPath('./vendor/draco/');
   window.THREE = THREE;
+  window.GLTFLoader = GLTFLoader;
+  window._dracoLoader = draco;
+  window.RoomEnvironment = RoomEnvironment;
   window.dispatchEvent(new Event('three-ready'));
 </script>
 <script src="js/util.js"></script>
