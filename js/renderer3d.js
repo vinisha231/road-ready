@@ -20,6 +20,17 @@ const R3D = {
     }
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
+    // sky/surroundings reflection probe for metallic car paint
+    if (window.RoomEnvironment) {
+      try {
+        const pmrem = new THREE.PMREMGenerator(this.renderer);
+        this._envTex = pmrem.fromScene(new window.RoomEnvironment(), 0.04).texture;
+      } catch (e) { this._envTex = null; }
+    }
     this.camera = new THREE.PerspectiveCamera(63, 1, 0.1, 900);
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -86,12 +97,17 @@ const R3D = {
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+    // PBR ground: wet-ish asphalt picks up sun + sky reflection, takes shadows
     const mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(wM, hM),
-      new THREE.MeshLambertMaterial({ map: tex })
+      new THREE.MeshStandardMaterial({
+        map: tex, roughness: Weather.rain > 0.3 ? 0.45 : 0.82, metalness: 0.0,
+        envMapIntensity: Weather.rain > 0.3 ? 0.9 : 0.35,
+      })
     );
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.set(b.minX + wM / 2, 0, b.minY + hM / 2);
+    mesh.receiveShadow = true;
     return mesh;
   },
 
@@ -138,9 +154,11 @@ const R3D = {
 Object.assign(R3D, {
   _mats: {},
   mat(color) {
-    if (!this._mats[color]) this._mats[color] = new THREE.MeshLambertMaterial({ color });
+    if (!this._mats[color]) this._mats[color] = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.2 });
     return this._mats[color];
   },
+
+  enableShadows(obj) { obj.traverse((o) => { if (o.isMesh) o.castShadow = true; }); return obj; },
 
   makeVehicle(color, truck = false) {
     const grp = new THREE.Group();
@@ -407,11 +425,25 @@ Object.assign(R3D, {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x87b5d9);
     this.scene.fog = new THREE.Fog(0x87b5d9, 60, 500);
+    if (this._envTex) this.scene.environment = this._envTex;
     this._hemi = new THREE.HemisphereLight(0xcfe5ff, 0x46543e, 1.0);
     this.scene.add(this._hemi);
     this._sun = new THREE.DirectionalLight(0xfff2d9, 1.6);
     this._sun.position.set(120, 180, 60);
+    // crisp local shadows: a tight ortho frustum that follows the car each frame
+    this._sun.castShadow = true;
+    this._sun.shadow.mapSize.set(2048, 2048);
+    this._sun.shadow.camera.near = 1;
+    this._sun.shadow.camera.far = 220;
+    const SH = 36;
+    this._sun.shadow.camera.left = -SH;
+    this._sun.shadow.camera.right = SH;
+    this._sun.shadow.camera.top = SH;
+    this._sun.shadow.camera.bottom = -SH;
+    this._sun.shadow.bias = -0.0006;
+    this._sun.shadow.normalBias = 0.02;
     this.scene.add(this._sun);
+    this.scene.add(this._sun.target);
     this._atmo = this.atmosphereTargets();
 
     const b = this.bounds(inst);
@@ -435,7 +467,7 @@ Object.assign(R3D, {
         m = this.makeTree(s);
         m.position.set(s.x, 0, s.y);
       }
-      if (m) this.scene.add(m);
+      if (m) this.scene.add(this.enableShadows(m));
     }
 
     // player car: body shows on the chase cam; the lights stay on either way
@@ -510,6 +542,7 @@ Object.assign(R3D, {
     if (!m) return;
     m.position.set(o.x, 0, o.y);
     m.rotation.y = -(o.a || 0);
+    this.enableShadows(m);
     this.scene.add(m);
     this._obMap.set(o, m);
   },
@@ -521,17 +554,17 @@ Object.assign(R3D, {
     while (this.playerBody.children.length) this.playerBody.remove(this.playerBody.children[0]);
     if (sel.model && window.GLTFLoader) {
       // placeholder so you're not staring at nothing during the download
-      const ph = Cars.build3D('sedan');
+      const ph = this.enableShadows(Cars.build3D('sedan'));
       ph.userData.placeholder = true;
       this.playerBody.add(ph);
       const p = Cars.loadModel(sel);
       if (p) p.then((scene) => {
         if (this.inst !== inst || Cars.selected().id !== sel.id) return; // moved on
         for (const c of [...this.playerBody.children]) this.playerBody.remove(c);
-        this.playerBody.add(this.processModel(scene, sel));
+        this.playerBody.add(this.enableShadows(this.processModel(scene, sel)));
       }).catch(() => { /* keep placeholder on failure */ });
     } else {
-      this.playerBody.add(Cars.build3D(sel.id));
+      this.playerBody.add(this.enableShadows(Cars.build3D(sel.id)));
     }
   },
 
@@ -585,7 +618,7 @@ Object.assign(R3D, {
     for (const item of list) {
       let m = map.get(item);
       if (!m) {
-        m = maker(item);
+        m = this.enableShadows(maker(item));
         this.scene.add(m);
         map.set(item, m);
       }
@@ -618,6 +651,12 @@ Object.assign(R3D, {
     // player
     this.player.position.set(car.x, 0, car.y);
     this.player.rotation.y = -car.heading;
+    // keep the sun (and its tight shadow frustum) centered on the car
+    if (this._sun) {
+      this._sun.position.set(car.x + 70, 130, car.y + 45);
+      this._sun.target.position.set(car.x, 0, car.y);
+      this._sun.target.updateMatrixWorld();
+    }
     const ptm = this.playerBody.userData.tailMat;
     if (ptm) {
       ptm.emissiveIntensity = car.braking ? 2.4 : 0.5;
