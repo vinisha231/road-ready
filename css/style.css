@@ -335,6 +335,27 @@ button.mini.on { background: rgba(255,210,74,0.16); border-color: var(--amber); 
 .vbtn.on { background: var(--amber); color: #1a1505; }
 .vbtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ---- garage (car picker) ---- */
+.garage-head { font-weight: 700; margin: 6px 0 10px; }
+.garage {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px; margin-bottom: 26px;
+}
+.garcar {
+  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  background: var(--panel); border: 1.5px solid #2a3343; border-radius: 12px;
+  padding: 12px 13px; cursor: pointer; text-align: left; color: var(--ink);
+  font: inherit; transition: border-color 0.15s ease, transform 0.08s ease;
+}
+.garcar:hover { transform: translateY(-2px); border-color: var(--muted); }
+.garcar.on { border-color: var(--amber); background: #1d2433; box-shadow: 0 0 0 1px var(--amber) inset; }
+.gc-swatch { height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); }
+.gc-name { font-weight: 700; font-size: 0.92rem; }
+.gc-stats { display: flex; flex-direction: column; gap: 4px; }
+.gc-stat { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: var(--muted); }
+.gc-bar { flex: 1; height: 5px; background: #2a3343; border-radius: 99px; overflow: hidden; }
+.gc-bar i { display: block; height: 100%; background: var(--amber); border-radius: 99px; }
+
 /* letterbox bars for cinema feel */
 #replayCap::before {
   content: ''; position: fixed; left: 0; right: 0; top: 0; height: 56px;

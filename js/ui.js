@@ -33,6 +33,18 @@ const UI = {
           </div>
         </div>`;
     }
+    const selCar = Cars.selected().id;
+    const bar = (v) => `<i style="width:${Math.round(U.clamp((v - 0.8) / 0.6, 0, 1) * 100)}%"></i>`;
+    const garage = Cars.list.map(c => `
+      <button class="garcar ${c.id === selCar ? 'on' : ''}" data-car="${c.id}" title="${c.blurb}">
+        <span class="gc-swatch" style="background:${c.color}"></span>
+        <span class="gc-name">${c.badge} ${c.name}</span>
+        <span class="gc-stats">
+          <span class="gc-stat">Speed <span class="gc-bar">${bar(c.stats.top)}</span></span>
+          <span class="gc-stat">Accel <span class="gc-bar">${bar(c.stats.accel)}</span></span>
+          <span class="gc-stat">Grip <span class="gc-bar">${bar(c.stats.grip)}</span></span>
+        </span>
+      </button>`).join('');
     const needsKeyboard = !window.matchMedia('(pointer: fine)').matches || window.innerWidth < 700;
     this.el('menu').innerHTML = `
       <div class="inner">
@@ -47,6 +59,8 @@ const UI = {
           </div>
           <button class="ghost" id="parentBtn">Parent / Instructor view</button>
         </div>
+        <div class="garage-head">🏎️ Pick your car <span class="muted small">— each drives differently</span></div>
+        <div class="garage">${garage}</div>
         <div class="cards">${cards}</div>
         <p class="foot">↑↓←→ or WASD to drive · Space handbrake · Q/E blinkers · P to (regrettably) check your phone · R resets a parking attempt · M mutes · Esc pauses<br>
         Not a substitute for actual driver's ed. But significantly cheaper.</p>
@@ -61,6 +75,9 @@ const UI = {
         Store.setting('view', vb.dataset.v);
         UI.buildMenu();
       });
+    }
+    for (const gc of this.el('menu').querySelectorAll('.garcar')) {
+      gc.addEventListener('click', () => { Cars.select(gc.dataset.car); UI.buildMenu(); });
     }
     for (const card of this.el('menu').querySelectorAll('.card:not(.locked)')) {
       card.addEventListener('click', () => Sim.brief(card.dataset.id));
