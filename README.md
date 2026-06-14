@@ -16,6 +16,14 @@ analog speedometer needle, gas/brake pedal indicators, a gear readout, and
 blinker arrows. Headlights carve through the dark, streetlights pool on the
 asphalt, rain falls around the car, and traffic carries its own lights.
 
+- **Rear-view + side mirrors.** Three real mirrors render the world behind you
+  every frame (extra rear-facing camera passes), framed in chrome housings —
+  check them before you change lanes, same as the real thing.
+- **Pick your car.** Choose a Trainer Sedan, BMW M-Series, Porsche 911, or
+  Lamborghini from the garage on the menu. Each has a distinct 3D body **and
+  distinct handling** — the Lambo launches hard and runs wide, the sedan is
+  slow and forgiving, the Porsche grips for days. Speed/accel/grip bars show
+  the trade-offs before you commit.
 - **C** toggles a chase camera if you want to see your car.
 - **Gamepads and racing wheels** work via the Gamepad API (left stick / wheel
   steers, triggers / pedals for gas and brake). Mappings vary by hardware.
