@@ -9,6 +9,7 @@ class Car {
     this.wheelbase = 2.6;
     this.skidding = false;
     this.flash = 0;
+    this.stats = { accel: 1, top: 1, grip: 1 }; // per-model multipliers (see Cars)
     this.signal = null; // 'L' | 'R'
     this._sigT = 0;
     this._sigH0 = 0;
@@ -39,7 +40,7 @@ class Car {
   /* c: {throttle -1..1, steer -1..1, handbrake}; grip: lateral decay rate (1/s);
      surface: 1 on asphalt, <1 on grass; brakeFx: braking efficiency (rain < 1) */
   update(dt, c, grip, surface = 1, brakeFx = 1) {
-    const ACCEL = 7.2, BRAKE = 11, MAXFWD = 35, MAXREV = -6.5;
+    const ACCEL = 7.2 * this.stats.accel, BRAKE = 11, MAXFWD = 35 * this.stats.top, MAXREV = -6.5;
     const fx = Math.cos(this.heading), fy = Math.sin(this.heading);
     const rx = -fy, ry = fx;
     let vf = this.vx * fx + this.vy * fy;
@@ -66,7 +67,7 @@ class Car {
 
     // lateral grip: tires bleed off sideways velocity at `grip` per second.
     // Rain or a pulled handbrake lowers it — corner too fast and you slide.
-    const g = grip * (c.handbrake ? 0.22 : 1) * (0.4 + 0.6 * surface);
+    const g = grip * this.stats.grip * (c.handbrake ? 0.22 : 1) * (0.4 + 0.6 * surface);
     vl *= Math.exp(-g * dt);
     this.skidding = Math.abs(vl) > 1.55 || (c.handbrake && Math.abs(vf) > 4);
 

@@ -59,6 +59,7 @@ const Sim = {
     const s = this.scenario = Scenarios.byId(id);
     this.inst = s.create();
     this.car = new Car(this.inst.spawn.x, this.inst.spawn.y, this.inst.spawn.h);
+    Cars.applyStats(this.car);
     Car.marks = [];
     this.session = new Session(id);
     this.clip = null;
