@@ -16,14 +16,19 @@ analog speedometer needle, gas/brake pedal indicators, a gear readout, and
 blinker arrows. Headlights carve through the dark, streetlights pool on the
 asphalt, rain falls around the car, and traffic carries its own lights.
 
-- **Rear-view + side mirrors.** Three real mirrors render the world behind you
-  every frame (extra rear-facing camera passes), framed in chrome housings —
-  check them before you change lanes, same as the real thing.
-- **Pick your car.** Choose a Trainer Sedan, BMW M-Series, Porsche 911, or
-  Lamborghini from the garage on the menu. Each has a distinct 3D body **and
-  distinct handling** — the Lambo launches hard and runs wide, the sedan is
-  slow and forgiving, the Porsche grips for days. Speed/accel/grip bars show
-  the trade-offs before you commit.
+- **Premium digital cockpit.** A curved widescreen instrument cluster with a
+  live lane-assist road animation, a big digital speed readout, gear, speed-limit
+  sign and power/brake bars, plus a realistic leather steering wheel (metallic
+  spokes, paddle shifters, hub badge) that turns as you steer and an ambient
+  light strip — all of it day/night aware and reacting to braking and speeding.
+- **Real 3D car models.** Pick from a Trainer Sedan (instant, procedural) or
+  real downloaded GLB supercars — the **Scuderia GT** and blacked-out **GT Track
+  Edition** (a real Ferrari mesh, Draco-compressed, recolored at runtime) and the
+  **Hyper Concept** (Khronos CC-BY concept car). Models load lazily — you only
+  download the car you actually pick. Each has **distinct handling**; speed/accel/
+  grip bars show the trade-offs before you commit.
+- **Rear-view + side mirrors.** Real rear-facing render passes show the world
+  behind you, framed in chrome — check them before you change lanes.
 - **C** toggles a chase camera if you want to see your car.
 - **Gamepads and racing wheels** work via the Gamepad API (left stick / wheel
   steers, triggers / pedals for gas and brake). Mappings vary by hardware.
